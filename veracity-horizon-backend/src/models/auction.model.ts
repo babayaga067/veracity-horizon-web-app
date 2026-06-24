@@ -6,13 +6,18 @@ export interface IAuction extends Document {
   title: string;
   description?: string;
   startingPrice: number;
-  owner: IUser["_id"]; // reference to User
+  currentBid?: number;
+  owner: IUser["_id"];
   bids: {
     user: IUser["_id"];
     amount: number;
     timestamp: Date;
-  }[]; //always required
-  status: "open" | "closed";
+  }[];
+  status: "upcoming" | "active" | "closed" | "open";
+  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
+  isFeatured: boolean;
+  imageUrls: string[];
+  endsAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,10 +25,19 @@ export interface IAuction extends Document {
 // Auction schema
 const AuctionSchema: Schema = new Schema<IAuction>(
   {
-    title: { type: String, required: true },
-    description: { type: String },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true },
     startingPrice: { type: Number, required: true },
+    currentBid: { type: Number, default: 0 },
     owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    category: {
+      type: String,
+      required: true,
+      enum: ["Art", "Electronics", "Vehicles", "Collectibles", "Fashion", "Real Estate"],
+    },
+    isFeatured: { type: Boolean, default: false },
+    status: { type: String, enum: ["upcoming", "active", "closed", "open"], default: "upcoming" },
+    imageUrls: { type: [String], default: [] },
     bids: {
       type: [
         {
@@ -32,9 +46,9 @@ const AuctionSchema: Schema = new Schema<IAuction>(
           timestamp: { type: Date, default: Date.now },
         },
       ],
-      default: [], //  ensures bids is never undefined
+      default: [],
     },
-    status: { type: String, enum: ["open", "closed"], default: "open" },
+    endsAt: { type: Date, required: true },
   },
   { timestamps: true }
 );

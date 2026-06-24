@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { handleRegisterUser } from "@/app/lib/actions/auth-actions";
 import Link from "next/link";
+import { EyeIcon, EyeOffIcon } from "@/app/(auth)/_components/EyeIcon";
 
 export default function RegisterForm() {
   const [isPending, startTransition] = useTransition();
@@ -46,10 +47,8 @@ export default function RegisterForm() {
   return (
     <div className="w-full">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        
-        {/* Global Error Banner */}
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
+          <div className="p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
             <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -57,68 +56,63 @@ export default function RegisterForm() {
           </div>
         )}
 
-        {/* Responsive Grid for Names */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-semibold text-slate-700 mb-2">First Name</label>
+            <label htmlFor="firstName" className="block text-sm font-bold text-slate-700 mb-2">First Name</label>
             <input
               id="firstName"
               type="text"
               {...register("firstName")}
               placeholder="Legal first name"
               disabled={isPending || isSubmitting}
-              className={`w-full px-4 py-3 rounded-xl border ${errors.firstName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3.5 rounded-xl border ${errors.firstName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
             />
             {errors.firstName && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.firstName.message}</span>}
           </div>
 
           <div>
-            <label htmlFor="lastName" className="block text-sm font-semibold text-slate-700 mb-2">Last Name</label>
+            <label htmlFor="lastName" className="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
             <input
               id="lastName"
               type="text"
               {...register("lastName")}
               placeholder="Legal last name"
               disabled={isPending || isSubmitting}
-              className={`w-full px-4 py-3 rounded-xl border ${errors.lastName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3.5 rounded-xl border ${errors.lastName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
             />
             {errors.lastName && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.lastName.message}</span>}
           </div>
         </div>
 
-        {/* Username Field */}
         <div>
-          <label htmlFor="username" className="block text-sm font-semibold text-slate-700 mb-2">Bidder Username</label>
+          <label htmlFor="username" className="block text-sm font-bold text-slate-700 mb-2">Bidder Username</label>
           <input
             id="username"
             type="text"
             {...register("username")}
             placeholder="Unique username"
             disabled={isPending || isSubmitting}
-            className={`w-full px-4 py-3 rounded-xl border ${errors.username ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+            className={`w-full px-4 py-3.5 rounded-xl border ${errors.username ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
           />
           {errors.username && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.username.message}</span>}
         </div>
 
-        {/* Email Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+          <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
           <input
             id="email"
             type="email"
             {...register("email")}
             placeholder="you@example.com"
             disabled={isPending || isSubmitting}
-            className={`w-full px-4 py-3 rounded-xl border ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+            className={`w-full px-4 py-3.5 rounded-xl border ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
           />
           {errors.email && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.email.message}</span>}
         </div>
 
-        {/* Password Fields Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+            <label htmlFor="password" className="block text-sm font-bold text-slate-700 mb-2">Password</label>
             <div className="relative">
               <input
                 id="password"
@@ -126,27 +120,23 @@ export default function RegisterForm() {
                 {...register("password")}
                 placeholder="••••••••"
                 disabled={isPending || isSubmitting}
-                className={`w-full pl-4 pr-10 py-3 rounded-xl border ${errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border ${errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                )}
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
             {errors.password && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.password.message}</span>}
           </div>
 
-          {/* Confirm Password */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-700 mb-2">Confirm</label>
+            <label htmlFor="confirmPassword" className="block text-sm font-bold text-slate-700 mb-2">Confirm Password</label>
             <div className="relative">
               <input
                 id="confirmPassword"
@@ -154,30 +144,26 @@ export default function RegisterForm() {
                 {...register("confirmPassword")}
                 placeholder="••••••••"
                 disabled={isPending || isSubmitting}
-                className={`w-full pl-4 pr-10 py-3 rounded-xl border ${errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border ${errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 tabIndex={-1}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
-                {showConfirmPassword ? (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                )}
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
             {errors.confirmPassword && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.confirmPassword.message}</span>}
           </div>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting || isPending}
-          className="w-full flex items-center justify-center py-3.5 px-4 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-lg shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all mt-6"
+          className="btn-primary w-full flex items-center justify-center py-3.5 px-4 text-base font-bold rounded-xl disabled:opacity-60 disabled:cursor-not-allowed transition-all mt-6"
         >
           {isPending || isSubmitting ? (
             <div className="flex items-center gap-2">
@@ -192,13 +178,9 @@ export default function RegisterForm() {
           )}
         </button>
 
-        {/* Footer Link */}
         <div className="pt-4 text-center text-slate-600">
           Already have a bidder account?{" "}
-          <Link 
-            href="/login" 
-            className="text-blue-600 font-semibold hover:text-blue-700 hover:underline transition-all"
-          >
+          <Link href="/login" className="text-blue-600 font-bold hover:text-blue-700 transition-colors">
             Sign in here
           </Link>
         </div>

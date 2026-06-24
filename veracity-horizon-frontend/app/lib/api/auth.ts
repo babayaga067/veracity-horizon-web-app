@@ -1,6 +1,6 @@
 import axios from "axios";
-import axiosInstance from "./axios-instance";
 import { API } from "./endpoints";
+import { getApiBase } from "./config";
 import { RegisterFormData, LoginFormData } from "@/app/(auth)/_components/schema";
 
 type ApiResponse<T> = {
@@ -16,6 +16,20 @@ type AuthPayload = {
   token: string;
 };
 
+type UpdateProfileData = {
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  fullName?: string;
+  phoneNumber?: string;
+};
+
+type UpdatePasswordData = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 const getApiErrorMessage = (error: unknown, fallback: string) => {
   if (axios.isAxiosError(error)) {
     return (
@@ -23,30 +37,73 @@ const getApiErrorMessage = (error: unknown, fallback: string) => {
       fallback
     );
   }
-
   if (error instanceof Error) {
     return error.message;
   }
-
   return fallback;
 };
 
-// Register user
 export const register = async (data: RegisterFormData) => {
   try {
-    const response = await axiosInstance.post<ApiResponse<null>>(API.AUTH.REGISTER, data);
+    const response = await axios.post<ApiResponse<null>>(`${getApiBase()}${API.AUTH.REGISTER}`, data);
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Registration failed"));
   }
 };
 
-// Login user
 export const login = async (data: LoginFormData) => {
   try {
-    const response = await axiosInstance.post<ApiResponse<AuthPayload>>(API.AUTH.LOGIN, data);
+    const response = await axios.post<ApiResponse<AuthPayload>>(`${getApiBase()}${API.AUTH.LOGIN}`, data);
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Login failed"));
+  }
+};
+
+export const whoami = async (token: string) => {
+  try {
+    const response = await axios.get<ApiResponse<AuthPayload["user"]>>(`${getApiBase()}${API.AUTH.WHOAMI}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to fetch user"));
+  }
+};
+
+export const updateProfile = async (data: UpdateProfileData, token: string) => {
+  try {
+    const response = await axios.put<ApiResponse<AuthPayload["user"]>>(`${getApiBase()}${API.AUTH.UPDATE}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Profile update failed"));
+  }
+};
+
+export const updatePassword = async (data: UpdatePasswordData, token: string) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${getApiBase()}${API.AUTH.PASSWORD}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Password update failed"));
+  }
+};
+
+export const uploadImage = async (file: File, token: string) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post<ApiResponse<{ url: string }>>(`${getApiBase()}${API.AUTH.UPLOAD}`, formData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Image upload failed"));
   }
 };

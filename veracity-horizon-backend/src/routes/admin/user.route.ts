@@ -31,7 +31,7 @@ adminUserRouter.delete(
 
 // Admin-only: list all users
 adminUserRouter.get(
-  "/",
+  "/users",
   authorizedMiddleware,
   adminMiddleware,
   (req, res, next) => adminUserController.listUsers(req, res, next)

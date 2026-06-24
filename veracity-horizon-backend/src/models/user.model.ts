@@ -10,6 +10,8 @@ export interface IUser extends UserType, Document {
   password: string;
   role: "admin" | "user"; 
   profileImage?: string;
+  fullName?: string;
+  phoneNumber?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +25,10 @@ const UserMongoSchema: Schema = new Schema<IUser>(
     password: { type: String, required: true },
     role: { type: String, enum: ["admin", "user"], default: "user" },
     profileImage: { type: String },
+    fullName: { type: String },
+    phoneNumber: { type: String },
   },
+
   { timestamps: true }
 );
 

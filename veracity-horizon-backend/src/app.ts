@@ -3,17 +3,20 @@ import cors from "cors";
 import mongoose from "mongoose";
 import userRoutes from "./routes/user.route";
 import adminUserRoutes from "./routes/admin/user.route";
-import auctionRoutes from "./routes/auction.route"; 
+import auctionRoutes from "./routes/auction.route";
 import { HttpException } from "./exceptions/http-exception";
 import { ApiResponseHelper } from "./utils/apihelper.util";
-import { PORT, MONGODB_URL } from "./configs/constant";
+import { PORT, MONGODB_URL, SECRET_KEY } from "./configs/constant";
+import path from "path";
+import fs from "fs";
 
 const app: Application = express();
 
 // CORS setup
 const corsOptions = {
-  origin: ["*"], // adjust for frontend domains later
-  successStatus: 200,
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept"],
 };
 app.use(cors(corsOptions));
 
@@ -21,25 +24,23 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded images statically
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+app.use("/api/v1/auth/images", express.static(UPLOAD_DIR, {
+  setHeaders: (res) => res.setHeader("Cache-Control", "public, max-age=31536000, immutable")
+}));
+
 // Routes
 app.use("/api/v1/auth", userRoutes);
-app.use("/api/v1/admin/users", adminUserRoutes);
-app.use("/api/v1/auctions", auctionRoutes); // auction endpoints
+app.use("/api/v1/admin", adminUserRoutes);
+app.use("/api/v1/auctions", auctionRoutes);
 
 // Root routes
 app.get("/", (req: Request, res: Response) => {
   return res.send("Hello, Veracity Horizon Auction App!");
-});
-
-// Exception test route
-app.get("/exception", (req: Request, res: Response) => {
-  try {
-    const logic: any = {};
-    logic.user.find(); // simulate error
-  } catch (err: any) {
-    console.error("Error:", err);
-    return res.status(500).json({ message: "Exception Issue" });
-  }
 });
 
 // Global 404 handler
@@ -63,10 +64,14 @@ mongoose
     console.log(" Connected to MongoDB");
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
+    }).on("error", (err: NodeJS.ErrnoException) => {
+      console.error(`Server error: ${err.message}`);
+      process.exit(1);
     });
   })
   .catch((err) => {
     console.error(" MongoDB connection error:", err);
+    process.exit(1);
   });
 
 export default app;

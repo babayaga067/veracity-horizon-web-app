@@ -40,14 +40,15 @@ export const authorizedMiddleware = async (
 
     req.user = user;
     return next();
-  } catch (err: any) {
-    if (err.name === "TokenExpiredError") {
+  } catch (err) {
+    const error = err as { name?: string; message?: string; status?: number };
+    if (error.name === "TokenExpiredError") {
       return ApiResponseHelper.error(res, "JWT expired", 401);
     }
     return ApiResponseHelper.error(
       res,
-      err.message || "Internal Server Error",
-      err.status || 500
+      error.message || "Internal Server Error",
+      error.status || 500
     );
   }
 };
@@ -64,11 +65,11 @@ export const adminMiddleware = async (
       throw new HttpException(403, "Forbidden not admin");
     }
     return next();
-  } catch (err: any) {
-    return ApiResponseHelper.error(
-      res,
-      err.message || "Internal Server Error",
-      err.status || 500
-    );
+  } catch (error) {
+    if (error instanceof HttpException) {
+      return ApiResponseHelper.error(res, error.message, error.status);
+    }
+    console.error("Admin middleware error:", error);
+    return ApiResponseHelper.error(res, "Internal Server Error", 500);
   }
 };

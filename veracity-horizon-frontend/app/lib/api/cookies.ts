@@ -2,39 +2,50 @@
 
 import { cookies } from "next/headers";
 
-// Store JWT securely
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
+
+function sanitizeUser(user: Record<string, unknown>) {
+  const { password: _, ...safe } = user; // eslint-disable-line @typescript-eslint/no-unused-vars
+  return safe;
+}
+
 export async function setTokenCookie(token: string) {
   const cookieStore = await cookies();
   cookieStore.set("auth_token", token, {
-    httpOnly: true,   // prevents client-side JS access
-    secure: true,     // only sent over HTTPS
-    sameSite: "strict", // prevents CSRF
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: SESSION_MAX_AGE,
+    path: "/",
   });
 }
 
-// Retrieve JWT
 export async function getTokenCookie() {
   const cookieStore = await cookies();
   return cookieStore.get("auth_token")?.value || null;
 }
 
-// Store user object securely
 export async function storeUserData(userData: Record<string, unknown>) {
   const cookieStore = await cookies();
-  cookieStore.set("user_data", JSON.stringify(userData), {
-    secure: true,
+  const safe = sanitizeUser(userData);
+  cookieStore.set("user_data", JSON.stringify(safe), {
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
+    maxAge: SESSION_MAX_AGE,
+    path: "/",
   });
 }
 
-// Retrieve user object
 export async function getUserData() {
-  const cookieStore = await cookies();
-  const userDataCookie = cookieStore.get("user_data")?.value;
-  return userDataCookie ? JSON.parse(userDataCookie) : null;
+  try {
+    const cookieStore = await cookies();
+    const userDataCookie = cookieStore.get("user_data")?.value;
+    return userDataCookie ? JSON.parse(userDataCookie) : null;
+  } catch {
+    return null;
+  }
 }
 
-// Clear cookies on logout
 export async function clearAuthCookies() {
   const cookieStore = await cookies();
   cookieStore.delete("auth_token");
