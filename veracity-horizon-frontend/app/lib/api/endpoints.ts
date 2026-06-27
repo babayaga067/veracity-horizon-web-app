@@ -13,6 +13,7 @@ export const API = {
     UPLOAD: "/api/v1/auctions/upload",
     MY_AUCTIONS: "/api/v1/auctions/my-auctions",
     MY_BIDS: "/api/v1/auctions/my-bids",
+    ADMIN_UPDATE: (id: string) => `/api/v1/auctions/${id}`,
   },
   ADMIN: {
     USERS: "/api/v1/admin/users",
