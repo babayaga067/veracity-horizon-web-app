@@ -146,13 +146,13 @@ export default function PortfolioPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon="💰"
-                  title="No bids yet"
-                  description="Browse the market and place your first bid."
-                  actionLabel="Browse Market"
-                  actionHref="/market"
-                />
+<EmptyState
+                    icon="dollar"
+                    title="No bids yet"
+                    description="Browse the market and place your first bid."
+                    actionLabel="Browse Market"
+                    actionHref="/market"
+                  />
               )}
             </div>
 
@@ -175,13 +175,13 @@ export default function PortfolioPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon="📦"
-                  title="No auctions yet"
-                  description="Create your first auction to start selling."
-                  actionLabel="Create Auction"
-                  onAction={() => setShowCreateModal(true)}
-                />
+<EmptyState
+                    icon="box"
+                    title="No auctions yet"
+                    description="Create your first auction to start selling."
+                    actionLabel="Create Auction"
+                    onAction={() => setShowCreateModal(true)}
+                  />
               )}
             </div>
           </div>
