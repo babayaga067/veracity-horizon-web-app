@@ -11,21 +11,26 @@ out/
 # Backend build artifacts
 dist/
 build/
+uploads/
 
 # Environment files (keep .env.example in repo)
-.env*.local
+.env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# IDE
+# IDE / Editor
 .vscode/
 .idea/
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
 # Build caches
 .turbo/
 .vercel/
+
+# Miscellaneous
+.kilo/
