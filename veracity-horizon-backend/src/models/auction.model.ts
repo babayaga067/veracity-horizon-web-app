@@ -12,6 +12,7 @@ export interface IAuction extends Document {
     user: IUser["_id"];
     amount: number;
     timestamp: Date;
+    idempotencyKey?: string;
   }[];
   status: "upcoming" | "active" | "closed" | "open";
   category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
@@ -44,6 +45,7 @@ const AuctionSchema: Schema = new Schema<IAuction>(
           user: { type: Schema.Types.ObjectId, ref: "User", required: true },
           amount: { type: Number, required: true },
           timestamp: { type: Date, default: Date.now },
+          idempotencyKey: { type: String },
         },
       ],
       default: [],
