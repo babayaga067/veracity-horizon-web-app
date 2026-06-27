@@ -150,7 +150,8 @@ export class AuctionController {
         throw new HttpException(401, "Unauthorized: missing user ID");
       }
 
-      const bid = await auctionService.placeBid(id, userId, amount);
+      const idempotencyKey = req.headers["x-idempotency-key"] as string | undefined;
+      const bid = await auctionService.placeBid(id, userId, amount, idempotencyKey);
       return ApiResponseHelper.success(res, bid, "Bid placed successfully");
     } catch (error: unknown) {
       if (error instanceof HttpException) {
@@ -173,6 +174,50 @@ export class AuctionController {
       
       return ApiResponseHelper.success(res, { url: imageUrl }, "Image uploaded successfully");
     } catch (error) {
+      if (error instanceof HttpException) {
+        return ApiResponseHelper.error(res, error.message, error.status);
+      }
+      console.error("Unexpected error:", error);
+      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+    }
+  }
+
+  async updateAuction(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      console.log("[updateAuction] PUT /api/v1/auctions/" + id, "body:", JSON.stringify(req.body));
+      if (!id || Array.isArray(id)) {
+        throw new HttpException(400, "Invalid auction ID");
+      }
+
+      const auction = await auctionService.updateAuction(id, req.body);
+      if (!auction) {
+        throw new HttpException(404, "Auction not found");
+      }
+      console.log("[updateAuction] Success - updated status:", auction.status);
+      return ApiResponseHelper.success(res, auction, "Auction updated successfully");
+    } catch (error: unknown) {
+      if (error instanceof HttpException) {
+        return ApiResponseHelper.error(res, error.message, error.status);
+      }
+      console.error("Unexpected error:", error);
+      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+    }
+  }
+
+  async deleteAuction(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      if (!id || Array.isArray(id)) {
+        throw new HttpException(400, "Invalid auction ID");
+      }
+
+      const deleted = await auctionService.deleteAuction(id);
+      if (!deleted) {
+        throw new HttpException(404, "Auction not found");
+      }
+      return ApiResponseHelper.success(res, null, "Auction deleted successfully");
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         return ApiResponseHelper.error(res, error.message, error.status);
       }
