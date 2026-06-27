@@ -32,7 +32,7 @@ export class AuctionMongoRepository implements IAuctionRepository {
   }
 
   async updateAuction(id: string, auction: Partial<IAuction>): Promise<IAuction | null> {
-    return await AuctionModel.findByIdAndUpdate(id, auction, { new: true });
+    return await AuctionModel.findByIdAndUpdate(id, auction, { new: true }).populate("owner").populate("bids.user");
   }
 
   async deleteAuction(id: string): Promise<boolean> {
