@@ -8,6 +8,7 @@ export interface IAuctionRepository {
   createAuction(auction: Partial<IAuction>): Promise<IAuction>;
   updateAuction(id: string, auction: Partial<IAuction>): Promise<IAuction | null>;
   deleteAuction(id: string): Promise<boolean>;
+  placeBidAtomic(auctionId: string, userId: string, amount: number, idempotencyKey?: string): Promise<IAuction | null>;
 }
 
 export class AuctionMongoRepository implements IAuctionRepository {
@@ -38,5 +39,44 @@ export class AuctionMongoRepository implements IAuctionRepository {
   async deleteAuction(id: string): Promise<boolean> {
     const deleted = await AuctionModel.findByIdAndDelete(id);
     return !!deleted;
+  }
+
+  async placeBidAtomic(auctionId: string, userId: string, amount: number, idempotencyKey?: string): Promise<IAuction | null> {
+    const now = new Date();
+
+    // Atomic bid placement with all validations
+    const filter: any = {
+      _id: auctionId,
+      status: { $in: ["active", "open"] },
+      endsAt: { $gt: now },
+      owner: { $ne: userId },
+    };
+
+    // Validate bid is higher than current highest (startingPrice or currentBid)
+    filter.$expr = {
+      $gt: [amount, { $ifNull: ["$currentBid", "$startingPrice"] }]
+    };
+
+    if (idempotencyKey) {
+      filter["bids.idempotencyKey"] = { $ne: idempotencyKey };
+    }
+
+    const updateResult = await AuctionModel.findOneAndUpdate(
+      filter,
+      {
+        $push: {
+          bids: {
+            user: userId,
+            amount,
+            timestamp: now,
+            ...(idempotencyKey && { idempotencyKey }),
+          },
+        },
+        $max: { currentBid: amount },
+      },
+      { new: true }
+    ).populate("owner").populate("bids.user");
+
+    return updateResult;
   }
 }
