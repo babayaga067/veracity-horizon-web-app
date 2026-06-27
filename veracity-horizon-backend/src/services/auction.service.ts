@@ -71,32 +71,74 @@ export class AuctionService {
     return auction;
   }
 
-  async placeBid(auctionId: string, userId: string, amount: number) {
+  async placeBid(auctionId: string, userId: string, amount: number, idempotencyKey?: string) {
+    // Validate amount
+    if (amount <= 0) {
+      throw new HttpException(400, "Bid amount must be positive");
+    }
+
     const auction = await auctionRepository.getById(auctionId);
     if (!auction) throw new HttpException(404, "Auction not found");
 
-    //  Ensure bids and startingPrice are defined
-    const bids = auction.bids ?? [];
-    const startingPrice = auction.startingPrice ?? 0;
-
-    //  Extract the last bid to satisfy TypeScript's strict index checking
-    const lastBid = bids[bids.length - 1];
-    const highestBid = lastBid ? lastBid.amount : startingPrice;
-
-    if (amount <= highestBid) {
-      throw new HttpException(400, "Bid must be higher than current highest bid");
+    // Check auction status - bidding only allowed on active/open auctions
+    if (auction.status !== "active" && auction.status !== "open") {
+      throw new HttpException(400, `Cannot bid on ${auction.status} auction`);
     }
 
-    auction.bids = [
-      ...bids,
-      {
-        user: new Types.ObjectId(userId),
-        amount,
-        timestamp: new Date(),
-      },
-    ];
+    // Check auction end time
+    const now = new Date();
+    if (auction.endsAt && now > auction.endsAt) {
+      throw new HttpException(400, "Auction has ended");
+    }
 
+    // Prevent owner from bidding on own auction
+    if (auction.owner.toString() === userId) {
+      throw new HttpException(400, "Owner cannot bid on their own auction");
+    }
+
+    // Get the actual highest bid (not just last bid in array)
+    const bids = auction.bids ?? [];
+    const startingPrice = auction.startingPrice ?? 0;
+    const currentHighest = Math.max(startingPrice, ...bids.map(b => b.amount));
+
+    // Minimum bid must be at least current highest + 1
+    const minAllowedBid = currentHighest + 1;
+    if (amount < minAllowedBid) {
+      throw new HttpException(400, `Bid must be at least ${minAllowedBid} (current highest: ${currentHighest})`);
+    }
+
+    // Check for duplicate idempotency key
+    if (idempotencyKey) {
+      const existingBid = bids.find(b => b.idempotencyKey === idempotencyKey);
+      if (existingBid) {
+        throw new HttpException(409, "This bid has already been placed");
+      }
+    }
+
+    const newBid = {
+      user: new Types.ObjectId(userId),
+      amount,
+      timestamp: new Date(),
+      ...(idempotencyKey && { idempotencyKey }),
+    };
+
+    auction.bids = [...bids, newBid];
+    auction.currentBid = amount;
     await auction.save();
+
     return auction;
+  }
+
+  async updateAuction(id: string, auctionData: Partial<IAuction>): Promise<IAuction | null> {
+    const { endsAt, ...rest } = auctionData;
+    const updateData: Partial<IAuction> = {
+      ...rest,
+      ...(endsAt && { endsAt: new Date(endsAt as string | Date) }),
+    };
+    return await auctionRepository.updateAuction(id, updateData);
+  }
+
+  async deleteAuction(id: string): Promise<boolean> {
+    return await auctionRepository.deleteAuction(id);
   }
 }
