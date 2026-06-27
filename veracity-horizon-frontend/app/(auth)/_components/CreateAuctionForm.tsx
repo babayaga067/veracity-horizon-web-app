@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAuctionSchema, CreateAuctionFormData } from "@/app/(auth)/_components/schema";
 import { handleCreateAuction, handleUploadAuctionImage } from "@/app/lib/actions/auth-actions";
+import imageCompression from "browser-image-compression";
 
 interface CreateAuctionFormProps {
   onSuccess?: () => void;
@@ -25,6 +26,7 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -32,19 +34,35 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
 
     setUploading(true);
     setUploadError(null);
-    const uploadPromises = Array.from(files).map(async (file) => {
-      const result = await handleUploadAuctionImage(file);
-      if (result.success && result.data?.url) {
-        return result.data.url;
+
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 800,
+      useWebWorker: true,
+    };
+
+    const fileArray = Array.from(files);
+    setPendingFiles(fileArray);
+
+    const uploadedUrls: string[] = [];
+    for (const file of fileArray) {
+      try {
+        const compressedFile = await imageCompression(file, options);
+        const result = await handleUploadAuctionImage(compressedFile);
+        if (result.success && result.data?.url) {
+          uploadedUrls.push(result.data.url);
+        } else {
+          setUploadError(result.message || `Failed to upload ${file.name}`);
+        }
+      } catch {
+        setUploadError(`Failed to process ${file.name}`);
       }
-      setUploadError(result.message || `Failed to upload ${file.name}`);
-      return null;
-    });
-    const results = await Promise.all(uploadPromises);
-    const uploadedUrls = results.filter((url): url is string => url !== null);
+    }
+
     if (uploadedUrls.length > 0) {
       setImagePreviews((prev) => [...prev, ...uploadedUrls]);
     }
+    setPendingFiles([]);
     setUploading(false);
   };
 
@@ -174,11 +192,11 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
           {uploadError && <span className="text-xs text-red-600 mt-1">{uploadError}</span>}
         </div>
 
-        {imagePreviews.length > 0 && (
+        {[...imagePreviews, ...pendingFiles].length > 0 && (
           <div className="grid grid-cols-3 gap-3">
             {imagePreviews.map((url, idx) => (
-              <div key={idx} className="relative group">
-                <img src={url} alt={`Preview ${idx}`} className="w-full h-24 object-cover rounded-lg" />
+              <div key={`uploaded-${idx}`} className="relative group">
+                <img src={url} alt={`Image ${idx + 1}`} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
@@ -189,6 +207,13 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </button>
+              </div>
+            ))}
+            {pendingFiles.map((file, idx) => (
+              <div key={`pending-${idx}`} className="relative">
+                <div className="w-full h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                  <span className="text-xs text-gray-500 px-2 text-center truncate">{file.name}</span>
+                </div>
               </div>
             ))}
           </div>
