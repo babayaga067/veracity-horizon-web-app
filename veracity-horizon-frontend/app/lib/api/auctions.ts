@@ -110,8 +110,12 @@ export const getMyBids = async (token: string) => {
 
 export const placeBid = async (auctionId: string, amount: number, token: string) => {
   try {
+    const idempotencyKey = `${auctionId}-${amount}-${Date.now()}`;
     const response = await axios.post<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.LIST}/${auctionId}/bid`, { amount }, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-Idempotency-Key": idempotencyKey,
+      },
     });
     return response.data;
   } catch (error: unknown) {
@@ -155,5 +159,44 @@ export const uploadAuctionImage = async (file: File, token: string) => {
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Failed to upload image"));
+  }
+};
+
+export const updateAuction = async (id: string, data: {
+  title: string;
+  description: string;
+  startingPrice: number;
+  category?: string;
+  endsAt?: string;
+  status?: string;
+  isFeatured?: boolean;
+  imageUrls?: string[];
+}, token: string) => {
+  try {
+    const response = await axios.put<ApiResponse<Auction>>(`${getApiBase()}${API.AUCTIONS.LIST}/${id}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const serverError = error.response?.data as { message?: string } | undefined;
+      throw new Error(serverError?.message || "Failed to update auction");
+    }
+    throw new Error(getApiErrorMessage(error, "Failed to update auction"));
+  }
+};
+
+export const deleteAuction = async (id: string, token: string) => {
+  try {
+    const response = await axios.delete<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.LIST}/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      const serverError = error.response?.data as { message?: string } | undefined;
+      throw new Error(serverError?.message || "Failed to delete auction");
+    }
+    throw new Error(getApiErrorMessage(error, "Failed to delete auction"));
   }
 };
