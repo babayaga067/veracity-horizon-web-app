@@ -1,7 +1,7 @@
 "use server";
 
 import { register, login, updateProfile, updatePassword, whoami } from "@/app/lib/api/auth";
-import { createAuction, uploadAuctionImage, getMyAuctions, getMyBids, placeBid } from "@/app/lib/api/auctions";
+import { createAuction, uploadAuctionImage, getMyAuctions, getMyBids, placeBid, updateAuction, deleteAuction } from "@/app/lib/api/auctions";
 import { RegisterFormData, LoginFormData } from "@/app/(auth)/_components/schema";
 import { setTokenCookie, storeUserData, clearAuthCookies, getTokenCookie } from "../api/cookies";
 
@@ -222,5 +222,52 @@ export const handleUploadAuctionImage = async (file: File) => {
       return { success: false, message: error.message };
     }
     return { success: false, message: "Failed to upload image" };
+  }
+};
+
+export const handleUpdateAuction = async (id: string, data: {
+  title: string;
+  description: string;
+  startingPrice: number;
+  category?: string;
+  endsAt?: string;
+  status?: string;
+  isFeatured?: boolean;
+  imageUrls?: string[];
+}) => {
+  try {
+    const token = await getTokenCookie();
+    if (!token) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    const result = await updateAuction(id, data, token);
+    return result.success
+      ? { success: true, message: result.message, data: result.data }
+      : { success: false, message: result.message || "Failed to update auction" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to update auction" };
+  }
+};
+
+export const handleDeleteAuction = async (id: string) => {
+  try {
+    const token = await getTokenCookie();
+    if (!token) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    const result = await deleteAuction(id, token);
+    return result.success
+      ? { success: true, message: result.message }
+      : { success: false, message: result.message || "Failed to delete auction" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to delete auction" };
   }
 };
