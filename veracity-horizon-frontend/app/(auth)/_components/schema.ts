@@ -55,6 +55,8 @@ export const createAuctionSchema = z.object({
   category: z.enum(["Art", "Electronics", "Vehicles", "Collectibles", "Fashion", "Real Estate"]),
   endsAt: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
+  status: z.enum(["upcoming", "active", "closed", "open"]).optional(),
+  isFeatured: z.boolean().optional(),
 });
 
 export type CreateAuctionFormData = z.infer<typeof createAuctionSchema>;
