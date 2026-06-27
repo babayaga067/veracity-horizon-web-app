@@ -4,6 +4,7 @@ import path from "path";
 import { AuctionController } from "../controllers/auction.controller";
 import { authorizedMiddleware } from "../middlewares/authorized.middleware";
 import { upload } from "../configs/multer";
+import { idempotencyGuard } from "../middlewares/idempotency.middleware";
 
 const auctionRouter = Router();
 const auctionController = new AuctionController();
@@ -29,10 +30,16 @@ auctionRouter.get("/:id", (req, res, next) => auctionController.getAuctionById(r
 // Authenticated: create auction
 auctionRouter.post("/create", authorizedMiddleware, (req, res, next) => auctionController.createAuction(req, res, next));
 
-// Authenticated: place bid
-auctionRouter.post("/:id/bid", authorizedMiddleware, (req, res, next) => auctionController.placeBid(req, res, next));
+// Authenticated: place bid (with idempotency protection)
+auctionRouter.post("/:id/bid", authorizedMiddleware, idempotencyGuard, (req, res, next) => auctionController.placeBid(req, res, next));
 
 // Authenticated: upload image
 auctionRouter.post("/upload", authorizedMiddleware, upload.single("file"), (req, res, next) => auctionController.uploadImage(req, res, next));
+
+// Authenticated: update auction
+auctionRouter.put("/:id", authorizedMiddleware, (req, res, next) => auctionController.updateAuction(req, res, next));
+
+// Authenticated: delete auction
+auctionRouter.delete("/:id", authorizedMiddleware, (req, res, next) => auctionController.deleteAuction(req, res, next));
 
 export default auctionRouter;
