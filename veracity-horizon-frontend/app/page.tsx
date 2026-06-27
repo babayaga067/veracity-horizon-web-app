@@ -156,7 +156,7 @@ export default function LandingPage() {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Listings</p>
             </div>
             <div className="glass-card rounded-2xl p-6">
-              <p className="text-3xl font-bold gradient-text">₹{totalValue > 100000 ? `${(totalValue / 100000).toFixed(1)}L` : totalValue.toLocaleString()}</p>
+              <p className="text-3xl font-bold gradient-text">रु {totalValue > 100000 ? `${(totalValue / 100000).toFixed(1)}L` : totalValue.toLocaleString()}</p>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Value</p>
             </div>
           </div>
@@ -178,13 +178,20 @@ export default function LandingPage() {
                   {featured.imageUrls?.[0] ? (
                     <img src={featured.imageUrls[0]} alt={featured.title} className="absolute inset-0 w-full h-full object-cover opacity-90" />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-6xl">🏆</div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-16 h-16 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 </div>
                 <div className="p-8 lg:p-10">
-                  <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-wider border border-amber-100 mb-4">
-                    ⭐ Featured Auction
+                  <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-wider border border-amber-100 mb-4 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    Featured Auction
                   </span>
                   <h3 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 mb-3">{featured.title}</h3>
                   <p className="text-slate-600 mb-6 line-clamp-2">{featured.description || "Premium auction item"}</p>
@@ -226,24 +233,30 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="glass-card rounded-3xl p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-2xl mx-auto mb-6 shadow-lg shadow-blue-500/30">
-                📝
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-14 0h16" />
+                </svg>
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Create Account</h3>
               <p className="text-sm text-slate-600 leading-relaxed">Register in seconds and get instant access to exclusive auctions worldwide.</p>
             </div>
 
             <div className="glass-card rounded-3xl p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-2xl mx-auto mb-6 shadow-lg shadow-purple-500/30">
-                🔍
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/30">
+                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Browse & Bid</h3>
               <p className="text-sm text-slate-600 leading-relaxed">Explore curated listings across art, collectibles, electronics, and more.</p>
             </div>
 
             <div className="glass-card rounded-3xl p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-2xl mx-auto mb-6 shadow-lg shadow-amber-500/30">
-                🏆
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/30">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Win & Collect</h3>
               <p className="text-sm text-slate-600 leading-relaxed">Secure payment, insured shipping, and authenticated delivery guaranteed.</p>
@@ -267,7 +280,7 @@ export default function LandingPage() {
                   <p className="text-sm text-blue-200 font-medium">Active Bidders</p>
                 </div>
                 <div className="text-center p-6 rounded-2xl bg-white/5 border border-white/10">
-                  <p className="text-4xl font-bold text-purple-400 mb-2">₹5Cr+</p>
+                  <p className="text-4xl font-bold text-purple-400 mb-2">रु 5Cr+</p>
                   <p className="text-sm text-purple-200 font-medium">Total Sales</p>
                 </div>
                 <div className="text-center p-6 rounded-2xl bg-white/5 border border-white/10">
@@ -305,8 +318,15 @@ export default function LandingPage() {
               return (
                 <Link key={cat} href="/market" className="group">
                   <div className={`glass-card rounded-2xl p-6 text-center hover:scale-105 transition-all duration-300 border-2 border-transparent hover:border-white/30`}>
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors[i]} flex items-center justify-center text-xl mx-auto mb-3 shadow-lg`}>
-                      {["🎨", "💻", "🚗", "🪙", "👗", "🏠"][i]}
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors[i]} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                      <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                        {i === 0 && <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-12 0l8 8 8-8" />}
+                        {i === 1 && <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />}
+                        {i === 2 && <path strokeLinecap="round" strokeLinejoin="round" d="M3 13l18 0M3 7l18 0M3 3l18 0M3 17l18 0M3 21l18 0" />}
+                        {i === 3 && <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2" />}
+                        {i === 4 && <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />}
+                        {i === 5 && <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2 4 4 8-8 4 4" />}
+                      </svg>
                     </div>
                     <p className="text-sm font-bold text-slate-900">{cat}</p>
                   </div>
