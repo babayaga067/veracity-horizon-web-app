@@ -6,10 +6,34 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: string;
+  icon: "package" | "zap" | "dollar" | "user";
   trend?: { value: number; label: string };
   color: "blue" | "indigo" | "emerald" | "amber" | "rose";
 }
+
+const icons = {
+  package: (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-16L4 7v10l8 4" />
+    </svg>
+  ),
+  zap: (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  ),
+  dollar: (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2 1.343-2 3-2M12 14c1.657 0 3-.895 3-2s1.343-2 3-2 3 .895 3 2-1.343 2-3 2 1.343 2 3 2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2" />
+    </svg>
+  ),
+  user: (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  ),
+};
 
 export function StatsCard({ title, value, subtitle, icon, trend, color }: StatsCardProps) {
   const colorClasses = {
@@ -38,8 +62,8 @@ export function StatsCard({ title, value, subtitle, icon, trend, color }: StatsC
             </div>
           )}
         </div>
-        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center text-xl shadow-sm ${colorClasses[color]}`}>
-          {icon}
+        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shadow-sm ${colorClasses[color]}`}>
+          {icons[icon]}
         </div>
       </div>
     </div>
