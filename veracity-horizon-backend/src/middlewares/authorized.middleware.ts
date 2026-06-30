@@ -71,7 +71,6 @@ export const adminMiddleware = async (
     if (error instanceof HttpException) {
       return ApiResponseHelper.error(res, error.message, error.status);
     }
-    console.error("Admin middleware error:", error);
     return ApiResponseHelper.error(res, "Internal Server Error", 500);
   }
 };
