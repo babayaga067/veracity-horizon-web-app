@@ -5,17 +5,33 @@ import { authorizedMiddleware, adminMiddleware } from "../../middlewares/authori
 const adminUserRouter = Router();
 const adminUserController = new AdminUserController();
 
+// Admin-only: list all users
+adminUserRouter.get(
+  "/users",
+  authorizedMiddleware,
+  adminMiddleware,
+  (req, res, next) => adminUserController.listUsers(req, res, next)
+);
+
 // Admin-only: create user
 adminUserRouter.post(
-  "/create",
+  "/users",
   authorizedMiddleware,
   adminMiddleware,
   (req, res, next) => adminUserController.createUser(req, res, next)
 );
 
-// Admin-only: update user
+// Admin-only: get single user by ID
+adminUserRouter.get(
+  "/users/:id",
+  authorizedMiddleware,
+  adminMiddleware,
+  (req, res, next) => adminUserController.getUserById(req, res, next)
+);
+
+// Admin-only: update user (full replacement)
 adminUserRouter.put(
-  "/:id",
+  "/users/:id",
   authorizedMiddleware,
   adminMiddleware,
   (req, res, next) => adminUserController.updateUser(req, res, next)
@@ -23,18 +39,10 @@ adminUserRouter.put(
 
 // Admin-only: delete user
 adminUserRouter.delete(
-  "/:id",
+  "/users/:id",
   authorizedMiddleware,
   adminMiddleware,
   (req, res, next) => adminUserController.deleteUser(req, res, next)
-);
-
-// Admin-only: list all users
-adminUserRouter.get(
-  "/users",
-  authorizedMiddleware,
-  adminMiddleware,
-  (req, res, next) => adminUserController.listUsers(req, res, next)
 );
 
 export default adminUserRouter;
