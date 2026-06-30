@@ -1,22 +1,23 @@
-import CreateAuctionForm from "@/app/(auth)/_components/CreateAuctionForm";
 import Link from "next/link";
+
+import CreateAuctionForm from "@/app/(auth)/_components/CreateAuctionForm";
 
 export default function CreateAuctionPage() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <Link
+          href="/admin/auctions"
+          className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Create New Auction</h1>
           <p className="text-gray-500 mt-1 text-sm">Add a new auction to the marketplace</p>
         </div>
-        <Link href="/admin/auctions">
-          <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-sm font-medium flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Auctions
-          </button>
-        </Link>
       </div>
       <CreateAuctionForm />
     </div>
