@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
   webpack(config) {
     config.resolve.alias["@"] = path.resolve(process.cwd());
     return config;
