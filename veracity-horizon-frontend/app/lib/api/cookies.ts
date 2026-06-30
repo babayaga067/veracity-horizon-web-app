@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 
-const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
+const SESSION_MAX_AGE = 24 * 60 * 60;
 
 function sanitizeUser(user: Record<string, unknown>) {
   const { password: _, ...safe } = user; // eslint-disable-line @typescript-eslint/no-unused-vars
