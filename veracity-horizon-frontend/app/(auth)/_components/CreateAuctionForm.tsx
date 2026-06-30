@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAuctionSchema, CreateAuctionFormData } from "@/app/(auth)/_components/schema";
 import { handleCreateAuction, handleUploadAuctionImage } from "@/app/lib/actions/auth-actions";
+import { imageUrl } from "@/app/lib/api/config";
+import Image from "next/image";
 import imageCompression from "browser-image-compression";
 
 interface CreateAuctionFormProps {
@@ -162,6 +164,37 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
               <option value="Collectibles">Collectibles</option>
               <option value="Fashion">Fashion</option>
               <option value="Real Estate">Real Estate</option>
+              {/* <!-- Expanded categories --> */}
+              <option value="Textiles">Textiles</option>
+              <option value="Jewelry">Jewelry</option>
+              <option value="Antiques">Antiques</option>
+              <option value="Food & Spices">Food & Spices</option>
+              <option value="Handicrafts">Handicrafts</option>
+              <option value="Musical Instruments">Musical Instruments</option>
+              <option value="Books & Manuscripts">Books & Manuscripts</option>
+              <option value="Furniture">Furniture</option>
+              <option value="Sports & Gear">Sports & Gear</option>
+              <option value="Home & Living">Home & Living</option>
+              <option value="Industrial Equipment">Industrial Equipment</option>
+              <option value="Luxury Goods">Luxury Goods</option>
+              <option value="Agriculture & Livestock">Agriculture & Livestock</option>
+              <option value="Tools & Hardware">Tools & Hardware</option>
+              <option value="Ceramics & Pottery">Ceramics & Pottery</option>
+              <option value="Carpets & Rugs">Carpets & Rugs</option>
+              <option value="Coins & Currency">Coins & Currency</option>
+              <option value="Watches & Timepieces">Watches & Timepieces</option>
+              <option value="Photography">Photography</option>
+              <option value="Sculptures">Sculptures</option>
+              <option value="Paintings">Paintings</option>
+              <option value="Textbooks & Academic">Textbooks & Academic</option>
+              <option value="Outdoor & Adventure">Outdoor & Adventure</option>
+              <option value="Health & Wellness">Health & Wellness</option>
+              <option value="Office Supplies">Office Supplies</option>
+              <option value="Children & Toys">Children & Toys</option>
+              <option value="Cultural Heritage">Cultural Heritage</option>
+              <option value="Religious Items">Religious Items</option>
+              <option value="Digital Assets">Digital Assets</option>
+
             </select>
             {errors.category && <span className="text-xs text-red-600 mt-1">{errors.category.message}</span>}
           </div>
@@ -176,6 +209,7 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
             disabled={isSubmitting || uploading}
             className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
           />
+          {errors.endsAt && <span className="text-xs text-red-600 mt-1">{errors.endsAt.message}</span>}
         </div>
 
         <div>
@@ -194,9 +228,9 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
 
         {[...imagePreviews, ...pendingFiles].length > 0 && (
           <div className="grid grid-cols-3 gap-3">
-            {imagePreviews.map((url, idx) => (
-              <div key={`uploaded-${idx}`} className="relative group">
-                <img src={url} alt={`Image ${idx + 1}`} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
+          {imagePreviews.map((url, idx) => (
+                <div key={`uploaded-${idx}`} className="relative group">
+                  <Image src={imageUrl(url)!} alt={`Image ${idx + 1}`} width={200} height={96} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
