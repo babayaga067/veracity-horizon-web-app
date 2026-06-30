@@ -1,6 +1,6 @@
 "use server";
 
-import { register, login, updateProfile, updatePassword, whoami } from "@/app/lib/api/auth";
+import { register, login, updateProfile, updatePassword, whoami, uploadImage } from "@/app/lib/api/auth";
 import { createAuction, uploadAuctionImage, getMyAuctions, getMyBids, placeBid, updateAuction, deleteAuction } from "@/app/lib/api/auctions";
 import { RegisterFormData, LoginFormData } from "@/app/(auth)/_components/schema";
 import { setTokenCookie, storeUserData, clearAuthCookies, getTokenCookie } from "../api/cookies";
@@ -64,7 +64,7 @@ export const handleUpdateProfile = async (formData: FormData) => {
     let profileImageUrl: string | undefined;
 
     if (profileImage instanceof File) {
-      const uploadResult = await uploadAuctionImage(profileImage, token);
+      const uploadResult = await uploadImage(profileImage, token);
       if (uploadResult.success && uploadResult.data?.url) {
         profileImageUrl = uploadResult.data.url;
       }
@@ -128,7 +128,7 @@ export const handleCreateAuction = async (data: {
   title: string;
   description: string;
   startingPrice: number;
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
+  category: string;
   endsAt?: string;
   imageUrls?: string[];
 }) => {
