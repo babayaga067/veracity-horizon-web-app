@@ -1,11 +1,11 @@
 {
   "name": "veracity-horizon-backend",
   "version": "1.0.0",
-  "main": "src/app.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "dev": "npx tsx --watch src/app.ts",
+    "dev": "npx tsx --watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -36,3 +36,4 @@
     "zod-validation-error": "^5.0.0"
   }
 }
+
