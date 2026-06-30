@@ -1,38 +1,13 @@
 "use server";
 
-import { getAuctions, getAuctionById } from "@/app/lib/api/auctions";
+import { API } from "@/app/lib/api/endpoints";
+import { getApiBase } from "@/app/lib/api/config";
+import { getTokenCookie } from "@/app/lib/api/cookies";
+import { getAuctionById, deleteAuction } from "@/app/lib/api/auctions";
+import type { PaginationMeta } from "@/app/lib/types/pagination";
+import type { Auction } from "@/app/lib/types/auction";
 
-export type Auction = {
-  _id: string;
-  title: string;
-  description?: string;
-  startingPrice: number;
-  currentBid?: number;
-  owner: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    username: string;
-  };
-  bids?: {
-    user: string;
-    amount: number;
-    timestamp: Date;
-  }[];
-  status: "upcoming" | "active" | "closed" | "open";
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
-  isFeatured: boolean;
-  imageUrls: string[];
-  endsAt: Date | string;
-};
-
-export type PaginationMeta = {
-  page: number;
-  size: number;
-  total: number;
-  totalPages: number;
-};
+export type { Auction } from "@/app/lib/types/auction";
 
 export type AuctionsResponse = {
   data: Auction[];
@@ -43,54 +18,43 @@ export type SingleAuctionResponse = {
   data: Auction;
 };
 
-export const fetchAuctionsAction = async (params: {
-  page?: number;
-  size?: number;
-  search?: string;
-}): Promise<{ success: boolean; data?: AuctionsResponse; message?: string }> => {
-  try {
-    const response = await getAuctions();
-    if (!response.success) {
-      return { success: false, message: response.message || "Failed to fetch auctions" };
-    }
-
-    let auctions = response.data || [];
-
-    if (params.search) {
-      const searchLower = params.search.toLowerCase();
-      auctions = auctions.filter(
-        (a) =>
-          a.title.toLowerCase().includes(searchLower) ||
-          a.description?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    const page = params.page || 1;
-    const size = params.size || 10;
-    const total = auctions.length;
-    const totalPages = Math.ceil(total / size);
-    const start = (page - 1) * size;
-    const end = start + size;
-    const paginatedAuctions = auctions.slice(start, end);
-
-    return {
-      success: true,
-      data: {
-        data: paginatedAuctions,
-        meta: {
-          page,
-          size,
-          total,
-          totalPages,
-        },
-      },
-    };
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return { success: false, message: error.message };
-    }
-    return { success: false, message: "Failed to fetch auctions" };
+export const fetchAuctionsAction = async (
+  page: number = 1,
+  limit: number = 10,
+  search: string = ""
+): Promise<{ success: boolean; data?: AuctionsResponse; message?: string }> => {
+  const token = await getTokenCookie();
+  if (!token) {
+    return { success: false, message: "Not authenticated" };
   }
+
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+  if (search) params.set("search", search);
+
+  const response = await fetch(`${getApiBase()}${API.AUCTIONS.LIST}?${params.toString()}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+    next: { revalidate: 0 },
+  });
+  const result = await response.json();
+  if (!response.ok || !result.success) {
+    return { success: false, message: result.message || "Failed to fetch auctions" };
+  }
+
+  const rawMeta = result.meta as { page: number; limit: number; total: number; totalPages: number } | undefined;
+  const meta: PaginationMeta = rawMeta
+    ? { page: rawMeta.page, limit: rawMeta.limit, total: rawMeta.total, totalPages: rawMeta.totalPages }
+    : { page, limit, total: (result.data || []).length, totalPages: 1 };
+
+  return {
+    success: true,
+    data: {
+      data: result.data || [],
+      meta,
+    },
+  };
 };
 
 export const fetchAuctionByIdAction = async (
@@ -113,3 +77,23 @@ export const fetchAuctionByIdAction = async (
   }
 };
 
+export const deleteAuctionAction = async (
+  id: string
+): Promise<{ success: boolean; message?: string }> => {
+  try {
+    const token = await getTokenCookie();
+    if (!token) {
+      return { success: false, message: "Not authenticated" };
+    }
+    const response = await deleteAuction(id, token);
+    if (!response.success) {
+      return { success: false, message: response.message || "Failed to delete auction" };
+    }
+    return { success: true, message: response.message || "Auction deleted" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to delete auction" };
+  }
+};
