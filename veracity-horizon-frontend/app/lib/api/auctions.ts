@@ -1,6 +1,9 @@
 import axios from "axios";
 import { API } from "./endpoints";
 import { getApiBase } from "./config";
+import type { Auction } from "@/app/lib/types/auction";
+
+export type { Auction } from "@/app/lib/types/auction";
 
 type ApiResponse<T> = {
   status: number;
@@ -8,31 +11,6 @@ type ApiResponse<T> = {
   message: string;
   data: T;
   meta?: unknown;
-};
-
-export type Auction = {
-  _id: string;
-  title: string;
-  description?: string;
-  startingPrice: number;
-  currentBid?: number;
-  owner: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    username: string;
-  };
-  bids?: {
-    user: string;
-    amount: number;
-    timestamp: Date;
-  }[];
-  status: "upcoming" | "active" | "closed" | "open";
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
-  isFeatured: boolean;
-  imageUrls: string[];
-  endsAt: Date | string;
 };
 
 const getApiErrorMessage = (error: unknown, fallback: string) => {
@@ -70,7 +48,7 @@ export const getAuctions = async () => {
 
 export const getFeaturedAuctions = async () => {
   try {
-    const response = await axios.get<ApiResponse<Auction[]>>(`${getApiBase()}${API.AUCTIONS.LIST}/featured`);
+    const response = await axios.get<ApiResponse<Auction[]>>(`${getApiBase()}${API.AUCTIONS.FEATURED}`);
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Failed to fetch featured auctions"));
@@ -79,7 +57,7 @@ export const getFeaturedAuctions = async () => {
 
 export const getAuctionById = async (id: string) => {
   try {
-    const response = await axios.get<ApiResponse<Auction>>(`${getApiBase()}${API.AUCTIONS.LIST}/${id}`);
+    const response = await axios.get<ApiResponse<Auction>>(`${getApiBase()}${API.AUCTIONS.BY_ID(id)}`);
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Failed to fetch auction"));
@@ -111,7 +89,7 @@ export const getMyBids = async (token: string) => {
 export const placeBid = async (auctionId: string, amount: number, token: string) => {
   try {
     const idempotencyKey = `${auctionId}-${amount}-${Date.now()}`;
-    const response = await axios.post<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.LIST}/${auctionId}/bid`, { amount }, {
+    const response = await axios.post<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.PLACE_BID(auctionId)}`, { amount }, {
       headers: {
         Authorization: `Bearer ${token}`,
         "X-Idempotency-Key": idempotencyKey,
@@ -131,7 +109,7 @@ export const createAuction = async (data: {
   title: string;
   description: string;
   startingPrice: number;
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
+  category: string;
   endsAt?: string;
   imageUrls?: string[];
 }, token: string) => {
@@ -173,7 +151,7 @@ export const updateAuction = async (id: string, data: {
   imageUrls?: string[];
 }, token: string) => {
   try {
-    const response = await axios.put<ApiResponse<Auction>>(`${getApiBase()}${API.AUCTIONS.LIST}/${id}`, data, {
+    const response = await axios.put<ApiResponse<Auction>>(`${getApiBase()}${API.AUCTIONS.BY_ID(id)}`, data, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
@@ -188,7 +166,7 @@ export const updateAuction = async (id: string, data: {
 
 export const deleteAuction = async (id: string, token: string) => {
   try {
-    const response = await axios.delete<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.LIST}/${id}`, {
+    const response = await axios.delete<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.BY_ID(id)}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
