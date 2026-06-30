@@ -75,7 +75,10 @@ export const whoami = async (token: string) => {
 export const updateProfile = async (data: UpdateProfileData, token: string) => {
   try {
     const response = await axios.put<ApiResponse<AuthPayload["user"]>>(`${getApiBase()}${API.AUTH.UPDATE}`, data, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
     });
     return response.data;
   } catch (error: unknown) {
@@ -102,6 +105,9 @@ export const uploadImage = async (file: File, token: string) => {
     const response = await axios.post<ApiResponse<{ url: string }>>(`${getApiBase()}${API.AUTH.UPLOAD}`, formData, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!response.data || response.data.success === undefined) {
+      throw new Error("Invalid response from image upload");
+    }
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Image upload failed"));
