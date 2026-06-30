@@ -2,29 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuthRedirect } from "@/app/(auth)/_components/useAuthRedirect";
 import { getAuctions, getFeaturedAuctions } from "@/app/lib/api/auctions";
 import { formatCurrency } from "@/app/lib/utils/currency";
-
-type Auction = {
-  _id: string;
-  title: string;
-  description?: string;
-  startingPrice: number;
-  currentBid?: number;
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
-  isFeatured: boolean;
-  status: "upcoming" | "active" | "closed" | "open";
-  endsAt: Date | string;
-  imageUrls: string[];
-  owner: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    username: string;
-  };
-};
+import { imageUrl } from "@/app/lib/api/config";
+import type { Auction } from "@/app/lib/types/auction";
 
 export default function LandingPage() {
   const { user, loading } = useAuthRedirect();
@@ -174,9 +157,9 @@ export default function LandingPage() {
 
             <div className="glass-card rounded-3xl overflow-hidden max-w-5xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-0">
-                <div className="relative h-64 lg:h-auto bg-gradient-to-br from-slate-800 to-slate-900">
-                  {featured.imageUrls?.[0] ? (
-                    <img src={featured.imageUrls[0]} alt={featured.title} className="absolute inset-0 w-full h-full object-cover opacity-90" />
+                 <div className="relative h-64 lg:h-auto bg-gradient-to-br from-slate-800 to-slate-900">
+                  {imageUrl((featured?.imageUrls as string[] | undefined)?.[0]) ? (
+                    <Image src={imageUrl((featured?.imageUrls as string[] | undefined)?.[0])!} alt={featured?.title || "Featured"} fill className="object-cover opacity-90" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <svg className="w-16 h-16 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
