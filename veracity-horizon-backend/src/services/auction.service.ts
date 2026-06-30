@@ -9,13 +9,32 @@ const PREMIUM_CATEGORIES = ["Art", "Real Estate", "Vehicles", "Collectibles"];
 const FEATURED_PRICE_THRESHOLD = 50000;
 
 export class AuctionService {
-  async getAllAuctions(skip = 0, limit = 20): Promise<IAuction[]> {
-    return await auctionRepository.getAll(skip, limit);
+  private normalizeImageUrls(imageUrls?: string[]): string[] {
+    if (!imageUrls) return [];
+    return imageUrls.map((url) => {
+      const trimmed = url.trim();
+      if (!trimmed) return "";
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        const idx = trimmed.indexOf("/api/v1/images/");
+        if (idx !== -1) return trimmed.slice(idx + "/api/v1/images/".length);
+      }
+      if (trimmed.startsWith("/") && trimmed.includes("/")) {
+        const parts = trimmed.split("/");
+        return parts[parts.length - 1];
+      }
+      if (trimmed.includes("/")) return trimmed.split("/").pop() || trimmed;
+      return trimmed;
+    }).filter((s): s is string => s !== "");
+  }
+
+  async getAllAuctions(page: number = 1, limit: number = 20, search?: string, status?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
+    const result = await auctionRepository.getAll(page, limit, search, status);
+    return result;
   }
 
   async getFeaturedAuctions(): Promise<IAuction[]> {
-    const auctions = await auctionRepository.getAll();
-    return auctions
+    const result = await auctionRepository.getAll(1, 50);
+    return result.auctions
       .filter((a) => this._isFeatured(a))
       .sort((a, b) => (b.bids?.length || 0) - (a.bids?.length || 0))
       .slice(0, 10);
@@ -60,12 +79,14 @@ export class AuctionService {
       title: auctionData.title,
       description: auctionData.description || "",
       startingPrice,
+      currentBid: startingPrice,
       category: category as "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate",
       endsAt,
       owner: new Types.ObjectId(ownerId),
       bids: [],
       isFeatured,
-      imageUrls: auctionData.imageUrls || [],
+      imageUrls: this.normalizeImageUrls(auctionData.imageUrls),
+      status: "upcoming",
     });
 
     return auction;
@@ -128,6 +149,7 @@ export class AuctionService {
     const updateData: Partial<IAuction> = {
       ...rest,
       ...(endsAt && { endsAt: new Date(endsAt as string | Date) }),
+      ...(rest.imageUrls !== undefined && { imageUrls: this.normalizeImageUrls(rest.imageUrls as string[]) }),
     };
     return await auctionRepository.updateAuction(id, updateData);
   }
