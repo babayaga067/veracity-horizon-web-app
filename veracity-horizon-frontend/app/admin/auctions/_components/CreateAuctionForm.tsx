@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAuctionSchema, CreateAuctionFormData } from "@/app/(auth)/_components/schema";
 import { handleCreateAuction, handleUploadAuctionImage } from "@/app/lib/actions/auth-actions";
+import { imageUrl } from "@/app/lib/api/config";
+import Image from "next/image";
 import imageCompression from "browser-image-compression";
 
 interface CreateAuctionFormProps {
@@ -194,9 +196,9 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
 
         {[...imagePreviews, ...pendingFiles].length > 0 && (
           <div className="grid grid-cols-3 gap-3">
-            {imagePreviews.map((url, idx) => (
-              <div key={`uploaded-${idx}`} className="relative group">
-                <img src={url} alt={`Image ${idx + 1}`} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
+          {imagePreviews.map((url, idx) => (
+                <div key={`uploaded-${idx}`} className="relative group">
+                  <Image src={imageUrl(url)!} alt={`Image ${idx + 1}`} width={200} height={96} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
