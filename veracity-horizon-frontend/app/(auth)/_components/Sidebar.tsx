@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/lib/context/AuthContext";
+import { imageUrl } from "@/app/lib/api/config";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", key: "home" },
   { href: "/market", label: "Marketplace", key: "market" },
   { href: "/dashboard/auctions", label: "My Auctions", key: "auctions" },
-  { href: "/admin/auctions", label: "Admin", key: "admin" },
   { href: "/portfolio", label: "Portfolio", key: "portfolio" },
   { href: "/dashboard/profile", label: "Profile", key: "profile" },
 ];
@@ -20,10 +21,10 @@ export function Sidebar() {
   const getActiveKey = () => {
     if (pathname === "/dashboard") return "home";
     if (pathname.startsWith("/dashboard/profile")) return "profile";
-    if (pathname.startsWith("/admin/auctions")) return "admin";
     if (pathname.startsWith("/dashboard/auctions/")) return "auctions";
     if (pathname === "/dashboard/auctions") return "auctions";
     if (pathname === "/market") return "market";
+    if (pathname === "/portfolio") return "portfolio";
     for (const item of navItems) {
       if (pathname === item.href || pathname.startsWith(item.href + "/")) {
         return item.key;
@@ -69,9 +70,9 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium overflow-hidden relative">
             {user?.profileImage ? (
-              <img src={user.profileImage} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+              <Image src={imageUrl(user.profileImage)!} alt="Profile" fill className="object-cover" />
             ) : (
               <span>{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
             )}
