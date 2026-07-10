@@ -2,7 +2,7 @@ import { UserService, sanitizeUser } from "../../services/user.service";
 import { z } from "zod";
 import { AdminCreateUserDTO, UpdateUserDTO } from "../../dtos/user.dto";
 import { ApiResponseHelper } from "../../utils/apihelper.util";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { HttpException } from "../../exceptions/http-exception";
 
 const userService = new UserService();
@@ -17,21 +17,21 @@ function handleControllerError(res: Response, error: unknown): Response {
 }
 
 export class AdminUserController {
-  async createUser(req: Request, res: Response, next: NextFunction) {
+  async createUser(req: Request, res: Response) {
     try {
       const userData = AdminCreateUserDTO.safeParse(req.body);
       if (!userData.success) {
         const formattedError = z.treeifyError(userData.error);
         return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
       }
-      const user = await userService.createUser(userData.data);
+      const user = await userService.createUser(userData.data, userData.data.role);
       return ApiResponseHelper.success(res, sanitizeUser(user), "User created successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
   }
 
-  async updateUser(req: Request, res: Response, next: NextFunction) {
+  async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
       if (!id || Array.isArray(id)) {
@@ -54,7 +54,7 @@ export class AdminUserController {
     }
   }
 
-  async deleteUser(req: Request, res: Response, next: NextFunction) {
+  async deleteUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
       if (!id || Array.isArray(id)) {
@@ -71,7 +71,7 @@ export class AdminUserController {
     }
   }
 
-  async listUsers(req: Request, res: Response, next: NextFunction) {
+  async listUsers(req: Request, res: Response) {
     try {
       const page = Math.max(1, parseInt(req.query.page as string) || 1);
       const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
@@ -91,7 +91,7 @@ export class AdminUserController {
     }
   }
 
-  async getUserById(req: Request, res: Response, next: NextFunction) {
+  async getUserById(req: Request, res: Response) {
     try {
       const { id } = req.params;
       if (!id || Array.isArray(id)) {

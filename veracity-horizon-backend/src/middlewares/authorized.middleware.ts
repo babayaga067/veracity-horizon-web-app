@@ -55,7 +55,6 @@ export const authorizedMiddleware = (
   })();
 };
 
-// Optional: remove if you don’t need admin roles
 export const adminMiddleware = async (
   req: Request,
   res: Response,

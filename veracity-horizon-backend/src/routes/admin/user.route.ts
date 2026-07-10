@@ -10,7 +10,7 @@ adminUserRouter.get(
   "/users",
   authorizedMiddleware,
   adminMiddleware,
-  (req, res, next) => adminUserController.listUsers(req, res, next)
+  (req, res) => adminUserController.listUsers(req, res)
 );
 
 // Admin-only: create user
@@ -18,7 +18,7 @@ adminUserRouter.post(
   "/users",
   authorizedMiddleware,
   adminMiddleware,
-  (req, res, next) => adminUserController.createUser(req, res, next)
+  (req, res) => adminUserController.createUser(req, res)
 );
 
 // Admin-only: get single user by ID
@@ -26,7 +26,7 @@ adminUserRouter.get(
   "/users/:id",
   authorizedMiddleware,
   adminMiddleware,
-  (req, res, next) => adminUserController.getUserById(req, res, next)
+  (req, res) => adminUserController.getUserById(req, res)
 );
 
 // Admin-only: update user (full replacement)
@@ -34,7 +34,7 @@ adminUserRouter.put(
   "/users/:id",
   authorizedMiddleware,
   adminMiddleware,
-  (req, res, next) => adminUserController.updateUser(req, res, next)
+  (req, res) => adminUserController.updateUser(req, res)
 );
 
 // Admin-only: delete user
@@ -42,7 +42,7 @@ adminUserRouter.delete(
   "/users/:id",
   authorizedMiddleware,
   adminMiddleware,
-  (req, res, next) => adminUserController.deleteUser(req, res, next)
+  (req, res) => adminUserController.deleteUser(req, res)
 );
 
 export default adminUserRouter;

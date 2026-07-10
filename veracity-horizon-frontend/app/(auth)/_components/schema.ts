@@ -33,9 +33,7 @@ export const updateProfileSchema = z.object({
     username: z.string({ message: "Username must be a string" }).min(3, "Username must be at least 3 characters").optional(),
     fullName: z.string({ message: "Full name must be a string" }).optional(),
     phoneNumber: z.string({ message: "Phone number must be a string" }).optional(),
-});
-
-export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
+  });
 
 export const updatePasswordSchema = z.object({
     currentPassword: z.string({ message: "Current password is required" }).min(6, "Current password is required"),
@@ -45,8 +43,6 @@ export const updatePasswordSchema = z.object({
     message: "Passwords do not match",
     path: ["confirmPassword"]
 });
-
-export type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
 export const createAuctionSchema = z.object({
   title: z.string({ message: "Title must be a string" }).min(3, "Title must be at least 3 characters"),

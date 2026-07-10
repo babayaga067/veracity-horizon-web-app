@@ -164,7 +164,6 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
               <option value="Collectibles">Collectibles</option>
               <option value="Fashion">Fashion</option>
               <option value="Real Estate">Real Estate</option>
-              {/* <!-- Expanded categories --> */}
               <option value="Textiles">Textiles</option>
               <option value="Jewelry">Jewelry</option>
               <option value="Antiques">Antiques</option>

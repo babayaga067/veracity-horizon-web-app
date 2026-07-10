@@ -86,21 +86,7 @@ export class UserController {
         throw new HttpException(404, "User not found");
       }
 
-      const userObj = user as unknown as Record<string, unknown>;
-      const userResponse: Record<string, unknown> = {
-        _id: userObj._id,
-        firstName: userObj.firstName,
-        lastName: userObj.lastName,
-        email: userObj.email,
-        username: userObj.username,
-        role: userObj.role,
-        profileImage: userObj.profileImage || "",
-        fullName: userObj.fullName || "",
-        phoneNumber: userObj.phoneNumber || "",
-        createdAt: userObj.createdAt,
-      };
-
-      return ApiResponseHelper.success(res, userResponse, "User details fetched");
+      return ApiResponseHelper.success(res, sanitizeUser(user), "User details fetched");
     } catch (error) {
       return handleControllerError(res, error);
     }

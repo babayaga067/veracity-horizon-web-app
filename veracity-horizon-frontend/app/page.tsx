@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuthRedirect } from "@/app/(auth)/_components/useAuthRedirect";
 import { getAuctions, getFeaturedAuctions } from "@/app/lib/api/auctions";
 import { formatCurrency } from "@/app/lib/utils/currency";
 import { imageUrl } from "@/app/lib/api/config";
 import type { Auction } from "@/app/lib/types/auction";
+import { useAuth } from "@/app/lib/context/AuthContext";
 
 export default function LandingPage() {
-  const { user, loading } = useAuthRedirect();
+  const { user } = useAuth();
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [featured, setFeatured] = useState<Auction | null>(null);
   useEffect(() => {
@@ -43,14 +43,6 @@ export default function LandingPage() {
     return diff.toString();
   };
   const daysLeft = getDaysLeft();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center animated-gradient">
-        <div className="animate-spin h-8 w-8 border-2 border-white/30 border-t-white rounded-full"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen animated-gradient text-white overflow-x-hidden">

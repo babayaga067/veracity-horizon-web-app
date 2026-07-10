@@ -2,6 +2,7 @@ import { AuctionMongoRepository } from "../repositories/auction.repository";
 import { IAuction } from "../models/auction.model";
 import { HttpException } from "../exceptions/http-exception";
 import { Types } from "mongoose";
+import { normalizeImageUrls } from "../utils/image.util";
 
 const auctionRepository = new AuctionMongoRepository();
 
@@ -9,24 +10,6 @@ const PREMIUM_CATEGORIES = ["Art", "Real Estate", "Vehicles", "Collectibles"];
 const FEATURED_PRICE_THRESHOLD = 50000;
 
 export class AuctionService {
-  private normalizeImageUrls(imageUrls?: string[]): string[] {
-    if (!imageUrls) return [];
-    return imageUrls.map((url) => {
-      const trimmed = url.trim();
-      if (!trimmed) return "";
-      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-        const idx = trimmed.indexOf("/api/v1/images/");
-        if (idx !== -1) return trimmed.slice(idx + "/api/v1/images/".length);
-      }
-      if (trimmed.startsWith("/") && trimmed.includes("/")) {
-        const parts = trimmed.split("/");
-        return parts[parts.length - 1];
-      }
-      if (trimmed.includes("/")) return trimmed.split("/").pop() || trimmed;
-      return trimmed;
-    }).filter((s): s is string => s !== "");
-  }
-
   async getAllAuctions(page: number = 1, limit: number = 20, search?: string, status?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
     const result = await auctionRepository.getAll(page, limit, search, status);
     return result;
@@ -80,12 +63,12 @@ export class AuctionService {
       description: auctionData.description || "",
       startingPrice,
       currentBid: startingPrice,
-      category: category as "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate",
+      category: category as "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate" | "Textiles" | "Jewelry" | "Antiques" | "Food & Spices" | "Handicrafts" | "Musical Instruments" | "Books & Manuscripts" | "Furniture" | "Sports & Gear" | "Home & Living" | "Industrial Equipment" | "Luxury Goods" | "Agriculture & Livestock" | "Tools & Hardware" | "Ceramics & Pottery" | "Carpets & Rugs" | "Coins & Currency" | "Watches & Timepieces" | "Photography" | "Sculptures" | "Paintings" | "Textbooks & Academic" | "Outdoor & Adventure" | "Health & Wellness" | "Office Supplies" | "Children & Toys" | "Cultural Heritage" | "Religious Items" | "Digital Assets",
       endsAt,
       owner: new Types.ObjectId(ownerId),
       bids: [],
       isFeatured,
-      imageUrls: this.normalizeImageUrls(auctionData.imageUrls),
+      imageUrls: normalizeImageUrls(auctionData.imageUrls),
       status: "upcoming",
     });
 
@@ -149,7 +132,7 @@ export class AuctionService {
     const updateData: Partial<IAuction> = {
       ...rest,
       ...(endsAt && { endsAt: new Date(endsAt as string | Date) }),
-      ...(rest.imageUrls !== undefined && { imageUrls: this.normalizeImageUrls(rest.imageUrls as string[]) }),
+      ...(rest.imageUrls !== undefined && { imageUrls: normalizeImageUrls(rest.imageUrls as string[]) }),
     };
     return await auctionRepository.updateAuction(id, updateData);
   }

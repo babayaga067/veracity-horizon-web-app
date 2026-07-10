@@ -17,7 +17,7 @@ export const sanitizeUser = (user: unknown): Record<string, unknown> => {
 };
 
 export class UserService {
-  async createUser(userData: CreateUserDTO): Promise<IUser> {
+  async createUser(userData: CreateUserDTO, role?: string): Promise<IUser> {
     const existingEmail = await userRepository.getUserByEmail(userData.email);
     if (existingEmail) {
       throw new HttpException(400, "Email already exists");
@@ -29,7 +29,7 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    const userToCreate = { ...userData, password: hashedPassword };
+    const userToCreate = { ...userData, password: hashedPassword, role: (role || "user") as "admin" | "user" };
 
     const user = await userRepository.createUser(userToCreate);
     return user;

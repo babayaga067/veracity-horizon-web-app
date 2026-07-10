@@ -28,15 +28,6 @@ const getApiErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-export const checkApiHealth = async (): Promise<boolean> => {
-  try {
-    const response = await axios.get(`${getApiBase()}/`, { timeout: 5000 });
-    return response.status >= 200 && response.status < 300;
-  } catch {
-    return false;
-  }
-};
-
 export const getAuctions = async () => {
   try {
     const response = await axios.get<ApiResponse<Auction[]>>(`${getApiBase()}${API.AUCTIONS.LIST}`);

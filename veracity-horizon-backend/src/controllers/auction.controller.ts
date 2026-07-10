@@ -5,28 +5,9 @@ import { HttpException } from "../exceptions/http-exception";
 import { z } from "zod";
 import { CreateAuctionSchema } from "../dtos/auction.dto";
 import { IAuction } from "../models/auction.model";
+import { cleanImageUrl, normalizeImageUrls } from "../utils/image.util";
 
 const auctionService = new AuctionService();
-
-function cleanImageUrl(url: string): string {
-  const trimmed = url.trim();
-  if (!trimmed) return trimmed;
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    const idx = trimmed.indexOf("/api/v1/images/");
-    if (idx !== -1) return trimmed.slice(idx + "/api/v1/images/".length);
-    return trimmed;
-  }
-  if (trimmed.startsWith("/api/v1/images/")) return trimmed.slice("/api/v1/images/".length);
-  const name = trimmed.split("/").pop() || trimmed;
-  return name;
-}
-
-function normalizeAuctionResponse<T extends { imageUrls?: string[] }>(data: T): T {
-  if (data.imageUrls) {
-    return { ...data, imageUrls: data.imageUrls.map(cleanImageUrl) };
-  }
-  return data;
-}
 
 function handleControllerError(res: Response, error: unknown): Response {
   if (error instanceof HttpException) {
@@ -42,14 +23,14 @@ const PlaceBidSchema = z.object({
 });
 
 export class AuctionController {
-   async listAuctions(req: Request, res: Response, next: NextFunction) {
+  async listAuctions(req: Request, res: Response, next: NextFunction) {
     try {
       const page = Math.max(1, Number(req.query.page) || 1);
       const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
       const search = (req.query.search as string) || "";
       const status = (req.query.status as string) || "";
       const result = await auctionService.getAllAuctions(page, limit, search, status);
-      return ApiResponseHelper.success(res, result.auctions.map(normalizeAuctionResponse), "Auctions fetched successfully", 200, {
+      return ApiResponseHelper.success(res, result.auctions.map(a => ({ ...a, imageUrls: normalizeImageUrls(a.imageUrls) })), "Auctions fetched successfully", 200, {
         page,
         limit,
         total: result.total,
@@ -63,7 +44,52 @@ export class AuctionController {
    async getFeaturedAuctions(req: Request, res: Response, next: NextFunction) {
     try {
       const auctions = await auctionService.getFeaturedAuctions();
-      return ApiResponseHelper.success(res, auctions.map(normalizeAuctionResponse), "Featured auctions fetched successfully");
+      return ApiResponseHelper.success(res, auctions.map(a => ({ ...a, imageUrls: normalizeImageUrls(a.imageUrls) })), "Featured auctions fetched successfully");
+    } catch (error) {
+      return handleControllerError(res, error);
+    }
+  }
+
+  async getCategories(req: Request, res: Response, next: NextFunction) {
+    try {
+      const categories = [
+        "Art",
+        "Electronics",
+        "Vehicles",
+        "Collectibles",
+        "Fashion",
+        "Real Estate",
+        "Textiles",
+        "Jewelry",
+        "Antiques",
+        "Food & Spices",
+        "Handicrafts",
+        "Musical Instruments",
+        "Books & Manuscripts",
+        "Furniture",
+        "Sports & Gear",
+        "Home & Living",
+        "Industrial Equipment",
+        "Luxury Goods",
+        "Agriculture & Livestock",
+        "Tools & Hardware",
+        "Ceramics & Pottery",
+        "Carpets & Rugs",
+        "Coins & Currency",
+        "Watches & Timepieces",
+        "Photography",
+        "Sculptures",
+        "Paintings",
+        "Textbooks & Academic",
+        "Outdoor & Adventure",
+        "Health & Wellness",
+        "Office Supplies",
+        "Children & Toys",
+        "Cultural Heritage",
+        "Religious Items",
+        "Digital Assets",
+      ];
+      return ApiResponseHelper.success(res, categories, "Categories fetched successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -80,7 +106,7 @@ export class AuctionController {
       if (!auction) {
         throw new HttpException(404, "Auction not found");
       }
-      return ApiResponseHelper.success(res, normalizeAuctionResponse(auction), "Auction fetched successfully");
+      return ApiResponseHelper.success(res, { ...auction, imageUrls: normalizeImageUrls(auction.imageUrls) }, "Auction fetched successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -94,7 +120,7 @@ export class AuctionController {
       }
 
       const auctions = await auctionService.getAuctionsByOwnerId(ownerId);
-      return ApiResponseHelper.success(res, auctions.map(normalizeAuctionResponse), "My auctions fetched successfully");
+      return ApiResponseHelper.success(res, auctions.map(a => ({ ...a, imageUrls: normalizeImageUrls(a.imageUrls) })), "My auctions fetched successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -108,7 +134,7 @@ export class AuctionController {
       }
 
       const auctions = await auctionService.getMyBids(userId);
-      return ApiResponseHelper.success(res, auctions.map(normalizeAuctionResponse), "My bids fetched successfully");
+      return ApiResponseHelper.success(res, auctions.map(a => ({ ...a, imageUrls: normalizeImageUrls(a.imageUrls) })), "My bids fetched successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -137,7 +163,7 @@ export class AuctionController {
       };
 
       const auction = await auctionService.createAuction(auctionInput, ownerId);
-      return ApiResponseHelper.success(res, normalizeAuctionResponse(auction), "Auction created successfully");
+      return ApiResponseHelper.success(res, { ...auction, imageUrls: normalizeImageUrls(auction.imageUrls) }, "Auction created successfully");
     } catch (error: unknown) {
       return handleControllerError(res, error);
     }
@@ -164,7 +190,7 @@ export class AuctionController {
 
       const idempotencyKey = req.headers["x-idempotency-key"] as string | undefined;
       const bid = await auctionService.placeBid(id, userId, amount, idempotencyKey);
-      return ApiResponseHelper.success(res, normalizeAuctionResponse(bid), "Bid placed successfully");
+      return ApiResponseHelper.success(res, { ...bid, imageUrls: normalizeImageUrls(bid.imageUrls) }, "Bid placed successfully");
     } catch (error: unknown) {
       return handleControllerError(res, error);
     }
@@ -177,7 +203,7 @@ export class AuctionController {
       }
 
       const filename = req.file.filename;
-      const imageUrl = `/api/v1/images/${filename}`;
+      const imageUrl = `${req.protocol}://${req.get("host")}/api/v1/images/${filename}`;
 
       return ApiResponseHelper.success(res, { url: imageUrl }, "Image uploaded successfully");
     } catch (error) {
@@ -206,7 +232,7 @@ export class AuctionController {
       if (!updated) {
         throw new HttpException(404, "Auction not found");
       }
-      return ApiResponseHelper.success(res, normalizeAuctionResponse(updated), "Auction updated successfully");
+      return ApiResponseHelper.success(res, { ...updated, imageUrls: normalizeImageUrls(updated.imageUrls) }, "Auction updated successfully");
     } catch (error: unknown) {
       return handleControllerError(res, error);
     }

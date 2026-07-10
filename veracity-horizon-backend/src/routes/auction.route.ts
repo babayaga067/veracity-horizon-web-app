@@ -13,6 +13,9 @@ auctionRouter.get("/", (req, res, next) => auctionController.listAuctions(req, r
 // Public: get featured auctions
 auctionRouter.get("/featured", (req, res, next) => auctionController.getFeaturedAuctions(req, res, next));
 
+// Public: get categories
+auctionRouter.get("/categories", (req, res, next) => auctionController.getCategories(req, res, next));
+
 // Authenticated: get my auctions
 auctionRouter.get("/my-auctions", authorizedMiddleware, (req, res, next) => auctionController.getMyAuctions(req, res, next));
 

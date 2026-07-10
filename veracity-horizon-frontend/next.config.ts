@@ -29,22 +29,6 @@ const nextConfig: NextConfig = {
     config.resolve.alias["@"] = path.resolve(process.cwd());
     return config;
   },
-  async rewrites() {
-    return [
-      {
-        source: "/api/v1/auth/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/v1/auth/:path*`,
-      },
-      {
-        source: "/api/v1/admin/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/v1/admin/:path*`,
-      },
-      {
-        source: "/api/v1/auctions/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/api/v1/auctions/:path*`,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
