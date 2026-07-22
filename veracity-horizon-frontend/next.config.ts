@@ -3,13 +3,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   turbopack: {},
+  output: "standalone",
   images: {
     unoptimized: true,
     remotePatterns: [
       {
         protocol: "http",
         hostname: "localhost",
-        port: "5000",
+        port: "8089",
         pathname: "/api/v1/**",
       },
       {
