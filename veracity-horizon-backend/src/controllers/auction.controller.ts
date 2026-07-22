@@ -18,6 +18,15 @@ function handleControllerError(res: Response, error: unknown): Response {
   return ApiResponseHelper.error(res, message, status);
 }
 
+// The owner field may be a populated document or a bare ObjectId depending on
+// the query, so extract the id defensively before comparing.
+function getOwnerId(owner: unknown): string {
+  if (owner && typeof owner === "object" && "_id" in (owner as Record<string, unknown>)) {
+    return String((owner as { _id: unknown })._id);
+  }
+  return String(owner);
+}
+
 const PlaceBidSchema = z.object({
   amount: z.number().positive("Bid must be a positive number"),
 });
@@ -224,7 +233,7 @@ export class AuctionController {
         throw new HttpException(404, "Auction not found");
       }
 
-      if (auction.owner.toString() !== userId && req.user?.role !== "admin") {
+      if (getOwnerId(auction.owner) !== userId && req.user?.role !== "admin") {
         throw new HttpException(403, "Forbidden: Not the owner or admin");
       }
 
@@ -251,7 +260,7 @@ export class AuctionController {
         throw new HttpException(404, "Auction not found");
       }
 
-      if (auction.owner.toString() !== userId && req.user?.role !== "admin") {
+      if (getOwnerId(auction.owner) !== userId && req.user?.role !== "admin") {
         throw new HttpException(403, "Forbidden: Not the owner or admin");
       }
 
