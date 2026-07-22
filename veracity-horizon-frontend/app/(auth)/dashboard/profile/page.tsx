@@ -422,3 +422,9 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+
+
+// app/dashboard/profile/page.tsx
+// to reset cache  
+export const dynamic = "force-dynamic";
