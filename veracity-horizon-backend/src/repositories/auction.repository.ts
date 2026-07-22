@@ -40,7 +40,8 @@ export class AuctionMongoRepository implements IAuctionRepository {
   }
 
   async createAuction(auction: Partial<IAuction>): Promise<IAuction> {
-    return await AuctionModel.create(auction);
+    const created = await AuctionModel.create(auction);
+    return created.toObject() as IAuction;
   }
 
   async updateAuction(id: string, auction: Partial<IAuction>): Promise<IAuction | null> {
