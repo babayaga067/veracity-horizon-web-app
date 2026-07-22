@@ -1,5 +1,5 @@
 import { UserMongoRepository } from "../repositories/user.repository";
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { CreateUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { IUser } from "../models/user.model";
 import { HttpException } from "../exceptions/http-exception";
 import bcrypt from "bcryptjs";
@@ -8,8 +8,16 @@ import { SECRET_KEY } from "../configs/constant";
 
 const userRepository = new UserMongoRepository();
 
+export const sanitizeUser = (user: unknown): Record<string, unknown> => {
+  if (typeof user !== "object" || user === null) return {};
+  const doc = user as Record<string, unknown> & { toObject?: () => Record<string, unknown> };
+  const plain = typeof doc.toObject === "function" ? doc.toObject() : doc;
+  const { password, ...safeUser } = plain;
+  return safeUser;
+};
+
 export class UserService {
-  async createUser(userData: CreateUserDTO): Promise<IUser> {
+  async createUser(userData: CreateUserDTO, role?: string): Promise<IUser> {
     const existingEmail = await userRepository.getUserByEmail(userData.email);
     if (existingEmail) {
       throw new HttpException(400, "Email already exists");
@@ -21,7 +29,7 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    const userToCreate = { ...userData, password: hashedPassword };
+    const userToCreate = { ...userData, password: hashedPassword, role: (role || "user") as "admin" | "user" };
 
     const user = await userRepository.createUser(userToCreate);
     return user;
@@ -44,7 +52,7 @@ export class UserService {
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       SECRET_KEY,
-      { expiresIn: "30d" }
+      { expiresIn: "24h" }
     );
 
     return { user, token };
@@ -58,11 +66,30 @@ export class UserService {
     return true;
   }
 
-  async updateUser(id: string, userData: Partial<IUser>): Promise<IUser | null> {
-    const updateData: Partial<IUser> = { ...userData };
+  async updateUser(id: string, userData: UpdateUserDTO): Promise<IUser | null> {
+    const existingUser = await userRepository.getUserById(id);
+    if (!existingUser) {
+      throw new HttpException(404, "User not found");
+    }
 
-    if (userData.password) {
-      updateData.password = await bcrypt.hash(userData.password, 10);
+    if (userData.email && userData.email !== existingUser.email) {
+      const existingEmail = await userRepository.getUserByEmail(userData.email);
+      if (existingEmail) {
+        throw new HttpException(400, "Email already exists");
+      }
+    }
+
+    if (userData.username && userData.username !== existingUser.username) {
+      const existingUsername = await userRepository.getUserByUsername(userData.username);
+      if (existingUsername) {
+        throw new HttpException(400, "Username already exists");
+      }
+    }
+
+    const updateData = { ...userData } as Partial<IUser>;
+
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
     }
 
     const updatedUser = await userRepository.update(id, updateData);
@@ -74,9 +101,9 @@ export class UserService {
     return deleted;
   }
 
-  async getAllUsers(): Promise<IUser[]> {
-    const users = await userRepository.getAll();
-    return users;
+  async getAllUsers(page: number = 1, limit: number = 10, search: string = ""): Promise<{ users: IUser[]; total: number; totalPages: number }> {
+    const result = await userRepository.getAll(page, limit, search);
+    return result;
   }
 
   async updatePassword(id: string, currentPassword: string, newPassword: string, confirmPassword: string): Promise<IUser | null> {

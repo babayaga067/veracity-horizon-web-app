@@ -3,12 +3,16 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+
+import Image from "next/image";
+import { imageUrl } from "@/app/lib/api/config";
 import { useAuthRedirect } from "@/app/(auth)/_components/useAuthRedirect";
 import { getAuctionById, getAuctions } from "@/app/lib/api/auctions";
-import type { Auction } from "@/app/lib/api/auctions";
+import type { Auction } from "@/app/lib/types/auction";
 import { handlePlaceBid } from "@/app/lib/actions/auth-actions";
 import { Sidebar } from "@/app/(auth)/_components/Sidebar";
 import { formatCurrency } from "@/app/lib/utils/currency";
+import BackArrow from "@/app/(components)/BackArrow";
 
 export default function AuctionDetailPage() {
   const { user, loading } = useAuthRedirect();
@@ -26,7 +30,8 @@ export default function AuctionDetailPage() {
       if (response.success) {
         setAuction(response.data);
         setBidAmount(response.data.currentBid || response.data.startingPrice);
-        setSelectedImage(response.data.imageUrls?.[0] || null);
+        const firstImage = (response.data.imageUrls as string[] | undefined)?.[0] || null;
+        setSelectedImage(firstImage);
       }
     } catch (error) {
       console.error("Failed to fetch auction:", error);
@@ -45,9 +50,8 @@ export default function AuctionDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (params.id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchAuction(params.id as string);
+    if (params.id && typeof params.id === "string" && params.id.length > 0) {
+      fetchAuction(params.id);
     }
   }, [params.id, fetchAuction]);
 
@@ -61,12 +65,25 @@ export default function AuctionDetailPage() {
   const handlePlaceBidClick = async () => {
     if (!auction || !params.id) return;
     setBidStatus(null);
+
+    const freshAuction = await getAuctionById(params.id as string);
+    if (!freshAuction.success || !freshAuction.data) {
+      setBidStatus({ message: "Failed to load latest auction data. Please try again.", type: "error" });
+      return;
+    }
+
+    setAuction(freshAuction.data);
+    const minBid = (freshAuction.data.currentBid || freshAuction.data.startingPrice) + 1;
+    if (bidAmount < minBid) {
+      setBidAmount(minBid);
+    }
+
     setIsPlacingBid(true);
-    const result = await handlePlaceBid(auction._id, bidAmount);
+    const result = await handlePlaceBid(freshAuction.data._id, bidAmount);
     setIsPlacingBid(false);
     if (result.success) {
       setBidStatus({ message: "Bid placed successfully!", type: "success" });
-      setAuction({ ...auction, currentBid: bidAmount });
+      setAuction({ ...freshAuction.data, currentBid: bidAmount });
     } else {
       setBidStatus({ message: result.message || "Failed to place bid", type: "error" });
     }
@@ -135,15 +152,10 @@ export default function AuctionDetailPage() {
         <div className="max-w-6xl mx-auto px-8 py-8 space-y-8">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <Link href="/dashboard/auctions" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors font-medium">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to My Auctions
-            </Link>
+            <BackArrow href="/dashboard/auctions" />
             <div className="flex items-center gap-3">
               <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${getStatusColor(auction.status)}`}>
-                {auction.status.toUpperCase()}
+                {(auction.status || "upcoming").toUpperCase()}
               </span>
               {auction.isFeatured && (
                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-800">
@@ -162,7 +174,7 @@ export default function AuctionDetailPage() {
             <div className="lg:col-span-2 space-y-4">
               {selectedImage ? (
                 <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-gray-200">
-                  <img src={selectedImage} alt={auction.title} className="w-full h-full object-cover" />
+                  <Image src={imageUrl(selectedImage)!} alt={auction.title} fill className="object-cover" />
                 </div>
               ) : (
                 <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-gray-200 flex items-center justify-center">
@@ -174,21 +186,21 @@ export default function AuctionDetailPage() {
                 </div>
               )}
               
-              {auction.imageUrls && auction.imageUrls.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {auction.imageUrls.map((url, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedImage(url)}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
-                        selectedImage === url ? "border-blue-500" : "border-transparent"
-                      }`}
-                    >
-                      <img src={url} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover hover:opacity-80 transition-opacity" />
-                    </button>
-                  ))}
-                </div>
-              )}
+               {auction &&Array.isArray(auction.imageUrls) && auction.imageUrls.length > 1 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {auction.imageUrls.map((url: string, idx: number) => (
+                       <button
+                       key={idx}
+                        onClick={() => setSelectedImage(url)}
+                       className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
+                         selectedImage === url ? "border-blue-500" : "border-transparent"
+                       }`}
+                     >
+                       <Image src={imageUrl(url)!} alt={`Thumbnail ${idx + 1}`} fill className="object-cover hover:opacity-80 transition-opacity" />
+                     </button>
+                    ))}
+                  </div>
+                )}
 
               {/* Description */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -208,8 +220,8 @@ export default function AuctionDetailPage() {
 <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
                     {auction.bids
                       .slice()
-                      .sort((a, b) => b.amount - a.amount)
-                      .map((bid, sortedIdx) => {
+                      .sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount)
+.map((bid, sortedIdx: number) => {
                         const bidderName = typeof bid.user === "object" 
                           ? `${(bid.user as { firstName?: string; lastName?: string }).firstName || ""} ${(bid.user as { firstName?: string; lastName?: string }).lastName || ""}`.trim()
                           : bid.user;
@@ -225,7 +237,7 @@ export default function AuctionDetailPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-slate-900 truncate">{bidderName}</p>
-                              <p className="text-xs text-slate-500">{new Date(bid.timestamp).toLocaleString()}</p>
+                              <p className="text-xs text-slate-500">{bid.timestamp ? new Date(bid.timestamp).toLocaleString() : "N/A"}</p>
                             </div>
                             <div className="text-right">
                               <p className={`font-bold ${isHighestBid ? "text-blue-700" : "text-slate-900"}`}>
@@ -267,11 +279,11 @@ export default function AuctionDetailPage() {
                     <p className="text-sm text-slate-900 mt-1">{auction.category}</p>
                   </div>
 
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Seller</p>
-                    <p className="text-sm text-slate-900 mt-1">{auction.owner.firstName} {auction.owner.lastName}</p>
-                    <p className="text-xs text-slate-500">@{auction.owner.username}</p>
-                  </div>
+                   <div>
+                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Seller</p>
+                     <p className="text-sm text-slate-900 mt-1">{auction.owner?.firstName ?? "Unknown"} {auction.owner?.lastName ?? ""}</p>
+                     <p className="text-xs text-slate-500">@{auction.owner?.username ?? "unknown"}</p>
+                   </div>
                 </div>
 
                 {auction.status === "active" || auction.status === "open" ? (
@@ -434,17 +446,17 @@ export default function AuctionDetailPage() {
                 {relatedAuctions.map((related) => (
                   <Link key={related._id} href={`/dashboard/auctions/${related._id}`} className="group">
                     <div className="border border-gray-100 rounded-xl p-4 hover:shadow-lg transition-all duration-200">
-                      <div className="aspect-square rounded-lg bg-slate-100 overflow-hidden mb-3">
-                        {related.imageUrls?.[0] ? (
-                          <img src={related.imageUrls[0]} alt={related.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
-                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            </svg>
+                        <div className="aspect-square rounded-lg bg-slate-100 overflow-hidden mb-3 relative">
+                            {imageUrl((related.imageUrls as string[] | undefined)?.[0]) ? (
+                              <Image src={imageUrl((related.imageUrls as string[] | undefined)?.[0])!} alt={related.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1">
+                                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
                       <p className="font-semibold text-slate-900 text-sm line-clamp-1">{related.title}</p>
                       <p className="text-xs text-slate-500 mt-1">{formatCurrency(related.currentBid || related.startingPrice)}</p>
                     </div>

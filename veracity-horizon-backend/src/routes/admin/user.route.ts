@@ -5,36 +5,44 @@ import { authorizedMiddleware, adminMiddleware } from "../../middlewares/authori
 const adminUserRouter = Router();
 const adminUserController = new AdminUserController();
 
-// Admin-only: create user
-adminUserRouter.post(
-  "/create",
-  authorizedMiddleware,
-  adminMiddleware,
-  (req, res, next) => adminUserController.createUser(req, res, next)
-);
-
-// Admin-only: update user
-adminUserRouter.put(
-  "/:id",
-  authorizedMiddleware,
-  adminMiddleware,
-  (req, res, next) => adminUserController.updateUser(req, res, next)
-);
-
-// Admin-only: delete user
-adminUserRouter.delete(
-  "/:id",
-  authorizedMiddleware,
-  adminMiddleware,
-  (req, res, next) => adminUserController.deleteUser(req, res, next)
-);
-
 // Admin-only: list all users
 adminUserRouter.get(
   "/users",
   authorizedMiddleware,
   adminMiddleware,
-  (req, res, next) => adminUserController.listUsers(req, res, next)
+  (req, res) => adminUserController.listUsers(req, res)
+);
+
+// Admin-only: create user
+adminUserRouter.post(
+  "/users",
+  authorizedMiddleware,
+  adminMiddleware,
+  (req, res) => adminUserController.createUser(req, res)
+);
+
+// Admin-only: get single user by ID
+adminUserRouter.get(
+  "/users/:id",
+  authorizedMiddleware,
+  adminMiddleware,
+  (req, res) => adminUserController.getUserById(req, res)
+);
+
+// Admin-only: update user (full replacement)
+adminUserRouter.put(
+  "/users/:id",
+  authorizedMiddleware,
+  adminMiddleware,
+  (req, res) => adminUserController.updateUser(req, res)
+);
+
+// Admin-only: delete user
+adminUserRouter.delete(
+  "/users/:id",
+  authorizedMiddleware,
+  adminMiddleware,
+  (req, res) => adminUserController.deleteUser(req, res)
 );
 
 export default adminUserRouter;

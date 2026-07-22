@@ -15,7 +15,7 @@ export interface IAuction extends Document {
     idempotencyKey?: string;
   }[];
   status: "upcoming" | "active" | "closed" | "open";
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
+  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate" | "Textiles" | "Jewelry" | "Antiques" | "Food & Spices" | "Handicrafts" | "Musical Instruments" | "Books & Manuscripts" | "Furniture" | "Sports & Gear" | "Home & Living" | "Industrial Equipment" | "Luxury Goods" | "Agriculture & Livestock" | "Tools & Hardware" | "Ceramics & Pottery" | "Carpets & Rugs" | "Coins & Currency" | "Watches & Timepieces" | "Photography" | "Sculptures" | "Paintings" | "Textbooks & Academic" | "Outdoor & Adventure" | "Health & Wellness" | "Office Supplies" | "Children & Toys" | "Cultural Heritage" | "Religious Items" | "Digital Assets";
   isFeatured: boolean;
   imageUrls: string[];
   endsAt: Date;
@@ -34,7 +34,7 @@ const AuctionSchema: Schema = new Schema<IAuction>(
     category: {
       type: String,
       required: true,
-      enum: ["Art", "Electronics", "Vehicles", "Collectibles", "Fashion", "Real Estate"],
+      enum: ["Art", "Electronics", "Vehicles", "Collectibles", "Fashion", "Real Estate", "Textiles", "Jewelry", "Antiques", "Food & Spices", "Handicrafts", "Musical Instruments", "Books & Manuscripts", "Furniture", "Sports & Gear", "Home & Living", "Industrial Equipment", "Luxury Goods", "Agriculture & Livestock", "Tools & Hardware", "Ceramics & Pottery", "Carpets & Rugs", "Coins & Currency", "Watches & Timepieces", "Photography", "Sculptures", "Paintings", "Textbooks & Academic", "Outdoor & Adventure", "Health & Wellness", "Office Supplies", "Children & Toys", "Cultural Heritage", "Religious Items", "Digital Assets"],
     },
     isFeatured: { type: Boolean, default: false },
     status: { type: String, enum: ["upcoming", "active", "closed", "open"], default: "upcoming" },

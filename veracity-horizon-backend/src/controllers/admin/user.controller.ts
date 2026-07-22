@@ -1,60 +1,60 @@
-import { UserService } from "../../services/user.service";
+import { UserService, sanitizeUser } from "../../services/user.service";
 import { z } from "zod";
-import { CreateUserDTO } from "../../dtos/user.dto";
+import { AdminCreateUserDTO, UpdateUserDTO } from "../../dtos/user.dto";
 import { ApiResponseHelper } from "../../utils/apihelper.util";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { HttpException } from "../../exceptions/http-exception";
 
 const userService = new UserService();
 
+function handleControllerError(res: Response, error: unknown): Response {
+  if (error instanceof HttpException) {
+    return ApiResponseHelper.error(res, error.message, error.status);
+  }
+  const message = error instanceof Error ? error.message : "Internal Server Error";
+  const status = error instanceof Error && "status" in error ? (error as { status: number }).status : 500;
+  return ApiResponseHelper.error(res, message, status);
+}
+
 export class AdminUserController {
-  async createUser(req: Request, res: Response, next: NextFunction) {
+  async createUser(req: Request, res: Response) {
     try {
-      const userData = CreateUserDTO.safeParse(req.body);
+      const userData = AdminCreateUserDTO.safeParse(req.body);
       if (!userData.success) {
-        return ApiResponseHelper.error(res, userData.error.message, 400);
+        const formattedError = z.treeifyError(userData.error);
+        return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
       }
-      const user = await userService.createUser(userData.data);
-      return ApiResponseHelper.success(res, user, "User created successfully");
+      const user = await userService.createUser(userData.data, userData.data.role);
+      return ApiResponseHelper.success(res, sanitizeUser(user), "User created successfully");
     } catch (error) {
-      if (error instanceof HttpException) {
-        return ApiResponseHelper.error(res, error.message, error.status);
-      }
-      console.error("Unexpected error:", error);
-      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+      return handleControllerError(res, error);
     }
   }
 
-  async updateUser(req: Request, res: Response, next: NextFunction) {
+  async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
       if (!id || Array.isArray(id)) {
         throw new HttpException(400, "Invalid user ID");
       }
 
-      const allowedFields = ["firstName", "lastName", "username", "role", "profileImage", "fullName", "phoneNumber"];
-      const updates: Record<string, unknown> = {};
-      for (const key of allowedFields) {
-        if (req.body[key] !== undefined) {
-          updates[key] = req.body[key];
-        }
+      const userData = UpdateUserDTO.safeParse(req.body);
+      if (!userData.success) {
+        const formattedError = z.treeifyError(userData.error);
+        return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
       }
 
-      const updatedUser = await userService.updateUser(id, updates);
+      const updatedUser = await userService.updateUser(id, userData.data);
       if (!updatedUser) {
         return ApiResponseHelper.error(res, "User not found", 404);
       }
-      return ApiResponseHelper.success(res, updatedUser, "User updated successfully");
+      return ApiResponseHelper.success(res, sanitizeUser(updatedUser), "User updated successfully");
     } catch (error) {
-      if (error instanceof HttpException) {
-        return ApiResponseHelper.error(res, error.message, error.status);
-      }
-      console.error("Unexpected error:", error);
-      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+      return handleControllerError(res, error);
     }
   }
 
-  async deleteUser(req: Request, res: Response, next: NextFunction) {
+  async deleteUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
       if (!id || Array.isArray(id)) {
@@ -67,24 +67,44 @@ export class AdminUserController {
       }
       return ApiResponseHelper.success(res, { deleted }, "User deleted successfully");
     } catch (error) {
-      if (error instanceof HttpException) {
-        return ApiResponseHelper.error(res, error.message, error.status);
-      }
-      console.error("Unexpected error:", error);
-      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+      return handleControllerError(res, error);
     }
   }
 
-  async listUsers(req: Request, res: Response, next: NextFunction) {
+  async listUsers(req: Request, res: Response) {
     try {
-      const users = await userService.getAllUsers();
-      return ApiResponseHelper.success(res, users, "Users fetched successfully");
+      const page = Math.max(1, parseInt(req.query.page as string) || 1);
+      const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
+      const search = (req.query.search as string) || "";
+
+      const result = await userService.getAllUsers(page, limit, search);
+      const safeUsers = result.users.map((user) => sanitizeUser(user));
+      const meta = {
+        page: result.totalPages > 0 ? page : 0,
+        limit,
+        total: result.total,
+        totalPages: result.totalPages,
+      };
+      return ApiResponseHelper.success(res, safeUsers, "Users fetched successfully", 200, meta);
     } catch (error) {
-      if (error instanceof HttpException) {
-        return ApiResponseHelper.error(res, error.message, error.status);
+      return handleControllerError(res, error);
+    }
+  }
+
+  async getUserById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      if (!id || Array.isArray(id)) {
+        throw new HttpException(400, "Invalid user ID");
       }
-      console.error("Unexpected error:", error);
-      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+
+      const user = await userService.getCurrentUser(id);
+      if (!user) {
+        return ApiResponseHelper.error(res, "User not found", 404);
+      }
+      return ApiResponseHelper.success(res, sanitizeUser(user), "User fetched successfully");
+    } catch (error) {
+      return handleControllerError(res, error);
     }
   }
 }

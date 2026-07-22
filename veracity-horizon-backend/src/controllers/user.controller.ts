@@ -1,6 +1,6 @@
-import { UserService } from "../services/user.service";
+import { UserService, sanitizeUser } from "../services/user.service";
 import { z } from "zod";
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { CreateUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { ApiResponseHelper } from "../utils/apihelper.util";
 import { HttpException } from "../exceptions/http-exception";
 import { Request, Response, NextFunction } from "express";
@@ -21,12 +21,12 @@ export class UserController {
     try {
       const userData = CreateUserDTO.safeParse(req.body);
       if (!userData.success) {
-        return ApiResponseHelper.error(res, z.prettifyError(userData.error), 400);
+        const formattedError = z.treeifyError(userData.error);
+        return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
       }
 
       const user = await userService.createUser(userData.data);
-      const { password, ...userWithoutPassword } = user.toObject();
-      return ApiResponseHelper.success(res, userWithoutPassword, "User created successfully");
+      return ApiResponseHelper.success(res, sanitizeUser(user), "User created successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -36,11 +36,12 @@ export class UserController {
     try {
       const parsedData = LoginUserDTO.safeParse(req.body);
       if (!parsedData.success) {
-        return ApiResponseHelper.error(res, z.prettifyError(parsedData.error), 400);
+        const formattedError = z.treeifyError(parsedData.error);
+        return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
       }
 
       const { user, token } = await userService.loginUser(parsedData.data);
-      return ApiResponseHelper.success(res, { user, token }, "Login successful");
+      return ApiResponseHelper.success(res, { user: sanitizeUser(user), token }, "Login successful");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -85,20 +86,7 @@ export class UserController {
         throw new HttpException(404, "User not found");
       }
 
-      const userResponse = {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-        profileImage: user.profileImage,
-        fullName: user.fullName,
-        phoneNumber: user.phoneNumber,
-        createdAt: user.createdAt,
-      };
-
-      return ApiResponseHelper.success(res, userResponse, "User details fetched");
+      return ApiResponseHelper.success(res, sanitizeUser(user), "User details fetched");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -111,32 +99,23 @@ export class UserController {
         throw new HttpException(401, "Unauthorized user not found");
       }
 
-      const updateData = req.body;
+      const parsedData = UpdateUserDTO.safeParse(req.body);
+      if (!parsedData.success) {
+        const formattedError = z.treeifyError(parsedData.error);
+        return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
+      }
 
       if (req.file) {
         const filename = req.file.filename;
-        updateData.profileImage = `${req.protocol}://${req.get("host")}/api/v1/auth/images/${filename}`;
+        parsedData.data.profileImage = `${req.protocol}://${req.get("host")}/api/v1/images/${filename}`;
       }
 
-      const updatedUser = await userService.updateUser(userId, updateData);
+      const updatedUser = await userService.updateUser(userId, parsedData.data);
       if (!updatedUser) {
         throw new HttpException(404, "User not found");
       }
 
-      const userResponse = {
-        _id: updatedUser._id,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        email: updatedUser.email,
-        username: updatedUser.username,
-        role: updatedUser.role,
-        profileImage: updatedUser.profileImage,
-        fullName: updatedUser.fullName,
-        phoneNumber: updatedUser.phoneNumber,
-        createdAt: updatedUser.createdAt,
-      };
-
-      return ApiResponseHelper.success(res, userResponse, "User updated successfully");
+      return ApiResponseHelper.success(res, sanitizeUser(updatedUser), "User updated successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }
@@ -149,7 +128,7 @@ export class UserController {
       }
 
       const filename = req.file.filename;
-      const imageUrl = `${req.protocol}://${req.get("host")}/api/v1/auth/images/${filename}`;
+      const imageUrl = `${req.protocol}://${req.get("host")}/api/v1/images/${filename}`;
 
       return ApiResponseHelper.success(res, { url: imageUrl }, "Image uploaded successfully");
     } catch (error) {

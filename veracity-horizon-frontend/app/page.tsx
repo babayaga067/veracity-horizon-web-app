@@ -2,32 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuthRedirect } from "@/app/(auth)/_components/useAuthRedirect";
+import Image from "next/image";
 import { getAuctions, getFeaturedAuctions } from "@/app/lib/api/auctions";
 import { formatCurrency } from "@/app/lib/utils/currency";
-
-type Auction = {
-  _id: string;
-  title: string;
-  description?: string;
-  startingPrice: number;
-  currentBid?: number;
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
-  isFeatured: boolean;
-  status: "upcoming" | "active" | "closed" | "open";
-  endsAt: Date | string;
-  imageUrls: string[];
-  owner: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    username: string;
-  };
-};
+import { imageUrl } from "@/app/lib/api/config";
+import type { Auction } from "@/app/lib/types/auction";
+import { useAuth } from "@/app/lib/context/AuthContext";
 
 export default function LandingPage() {
-  const { user, loading } = useAuthRedirect();
+  const { user } = useAuth();
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [featured, setFeatured] = useState<Auction | null>(null);
   useEffect(() => {
@@ -60,14 +43,6 @@ export default function LandingPage() {
     return diff.toString();
   };
   const daysLeft = getDaysLeft();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center animated-gradient">
-        <div className="animate-spin h-8 w-8 border-2 border-white/30 border-t-white rounded-full"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen animated-gradient text-white overflow-x-hidden">
@@ -174,9 +149,9 @@ export default function LandingPage() {
 
             <div className="glass-card rounded-3xl overflow-hidden max-w-5xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-0">
-                <div className="relative h-64 lg:h-auto bg-gradient-to-br from-slate-800 to-slate-900">
-                  {featured.imageUrls?.[0] ? (
-                    <img src={featured.imageUrls[0]} alt={featured.title} className="absolute inset-0 w-full h-full object-cover opacity-90" />
+                 <div className="relative h-64 lg:h-auto bg-gradient-to-br from-slate-800 to-slate-900">
+                  {imageUrl((featured?.imageUrls as string[] | undefined)?.[0]) ? (
+                    <Image src={imageUrl((featured?.imageUrls as string[] | undefined)?.[0])!} alt={featured?.title || "Featured"} fill className="object-cover opacity-90" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <svg className="w-16 h-16 text-amber-400" fill="currentColor" viewBox="0 0 24 24">

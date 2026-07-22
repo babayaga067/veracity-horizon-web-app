@@ -55,7 +55,6 @@ export const authorizedMiddleware = (
   })();
 };
 
-// Optional: remove if you don’t need admin roles
 export const adminMiddleware = async (
   req: Request,
   res: Response,
@@ -71,7 +70,6 @@ export const adminMiddleware = async (
     if (error instanceof HttpException) {
       return ApiResponseHelper.error(res, error.message, error.status);
     }
-    console.error("Admin middleware error:", error);
     return ApiResponseHelper.error(res, "Internal Server Error", 500);
   }
 };

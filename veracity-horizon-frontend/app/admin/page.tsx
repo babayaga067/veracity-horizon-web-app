@@ -1,0 +1,194 @@
+import { fetchAuctionsAction } from "@/app/lib/actions/auction-action";
+import { fetchUsersAction } from "@/app/lib/actions/admin-user-action";
+import AuctionTable from "./auctions/_components/AuctionTable";
+import Image from "next/image";
+import { imageUrl } from "@/app/lib/api/config";
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; limit?: string; search?: string; status?: string }>;
+}) {
+  const { page, limit, search, status } = await searchParams;
+
+  const pageNumber = parseInt(page || "1", 10);
+  const limitNumber = parseInt(limit || "10", 10);
+  const searchValue = search;
+  const statusValue = status || "all";
+
+  const [auctionsRes, usersRes] = await Promise.all([
+    fetchAuctionsAction(1, 100),
+    fetchUsersAction(1, 100),
+  ]);
+
+  const auctions = auctionsRes.success && auctionsRes.data ? auctionsRes.data.data : [];
+  const users = usersRes.success && usersRes.data ? usersRes.data.data : [];
+
+  const totalAuctions = auctions.length;
+  const activeAuctions = auctions.filter((a) => a.status === "active" || a.status === "open").length;
+  const totalBids = auctions.reduce((sum, a) => sum + (a.bids?.length || 0), 0);
+  const totalValue = auctions.reduce((sum, a) => sum + (a.currentBid || a.startingPrice || 0), 0);
+  const featuredCount = auctions.filter((a) => a.isFeatured).length;
+  const totalUsers = users.length;
+
+  const recentAuctions = [...auctions]
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 5);
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p className="text-gray-500 mt-2 text-sm">Overview of your auction platform</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-16L4 7v10l8 4" />
+              </svg>
+            </div>
+            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Total</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{totalAuctions}</p>
+          <p className="text-sm text-gray-500 mt-1">Total Auctions</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">Live</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{activeAuctions}</p>
+          <p className="text-sm text-gray-500 mt-1">Active Auctions</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">Bids</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">{totalBids}</p>
+          <p className="text-sm text-gray-500 mt-1">Total Bids Placed</p>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">Value</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900">रु {totalValue.toLocaleString()}</p>
+          <p className="text-sm text-gray-500 mt-1">Total Platform Value</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm">
+          <div className="px-6 py-5 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">Recent Auctions</h2>
+            <p className="text-sm text-gray-500 mt-1">Latest listings across all categories</p>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {recentAuctions.map((auction) => (
+              <div key={auction._id} className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors">
+                <div className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 relative">
+                  {imageUrl((auction.imageUrls as string[] | undefined)?.[0]) ? (
+                    <Image src={imageUrl((auction.imageUrls as string[] | undefined)?.[0])!} alt={auction.title} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-16L4 7v10l8 4" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-slate-900 truncate">{auction.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{auction.category}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-xs text-slate-400">Current</p>
+                      <p className="text-sm font-bold text-slate-900">रु {(auction.currentBid || auction.startingPrice).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  auction.status === "active" || auction.status === "open" ? "bg-emerald-50 text-emerald-700" :
+                  auction.status === "closed" ? "bg-slate-100 text-slate-600" : "bg-blue-50 text-blue-700"
+                }`}>
+                  {(auction.status || "upcoming").toUpperCase()}
+                </span>
+              </div>
+            ))}
+            {recentAuctions.length === 0 && (
+              <div className="p-8 text-center text-gray-500">No recent auctions</div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Stats</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-slate-600">Total Users</span>
+                <span className="font-semibold text-slate-900">{totalUsers}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-slate-600">Featured Listings</span>
+                <span className="font-semibold text-slate-900">{featuredCount}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-slate-600">Avg. Bid Value</span>
+                <span className="font-semibold text-slate-900">रु {totalBids > 0 ? Math.round(totalValue / totalBids).toLocaleString() : "0"}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-slate-600">Categories Used</span>
+                <span className="font-semibold text-slate-900">{new Set(auctions.map((a) => a.category)).size}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
+            <h3 className="text-lg font-semibold mb-2">Quick Actions</h3>
+            <p className="text-blue-100 text-sm mb-4">Manage your platform efficiently</p>
+            <div className="space-y-3">
+              <a href="/admin/auctions/create" className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-xl p-3 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <span className="text-sm font-medium">Create New Auction</span>
+              </a>
+              <a href="/admin/users/create" className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-xl p-3 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                <span className="text-sm font-medium">Add New User</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

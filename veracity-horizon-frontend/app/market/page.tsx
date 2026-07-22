@@ -8,26 +8,7 @@ import { AuctionCard } from "@/app/(auth)/_components/AuctionCard";
 import { EmptyState } from "@/app/(auth)/_components/EmptyState";
 import { SkeletonCard } from "@/app/(auth)/_components/SkeletonCard";
 import CreateAuctionForm from "@/app/(auth)/_components/CreateAuctionForm";
-
-type Auction = {
-  _id: string;
-  title: string;
-  description?: string;
-  startingPrice: number;
-  currentBid?: number;
-  category: "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate";
-  isFeatured: boolean;
-  status: "upcoming" | "active" | "closed" | "open";
-  endsAt: Date | string;
-  imageUrls: string[];
-  owner: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    username: string;
-  };
-};
+import type { Auction } from "@/app/lib/types/auction";
 
 const categories = ["All", "Art", "Electronics", "Vehicles", "Collectibles", "Fashion", "Real Estate"];
 
@@ -62,13 +43,14 @@ export default function MarketPage() {
   }, [fetchAuctions]);
 
   const filteredAuctions = auctions.filter((a) => {
-    // Do not show closed auctions unless searching
+    if (!a.title) return false;
     if (a.status === "closed" && !searchQuery) {
       return false;
     }
     const matchesCategory = selectedCategory === "All" || a.category === selectedCategory;
-    const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = a.title.toLowerCase().includes(q) ||
+      (a.description ? a.description.toLowerCase().includes(q) : false);
     return matchesCategory && matchesSearch;
   });
 

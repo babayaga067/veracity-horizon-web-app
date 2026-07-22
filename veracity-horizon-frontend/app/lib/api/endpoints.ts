@@ -9,13 +9,18 @@ export const API = {
   },
   AUCTIONS: {
     LIST: "/api/v1/auctions",
+    FEATURED: "/api/v1/auctions/featured",
     CREATE: "/api/v1/auctions/create",
     UPLOAD: "/api/v1/auctions/upload",
     MY_AUCTIONS: "/api/v1/auctions/my-auctions",
     MY_BIDS: "/api/v1/auctions/my-bids",
-    ADMIN_UPDATE: (id: string) => `/api/v1/auctions/${id}`,
+    BY_ID: (id: string) => `/api/v1/auctions/${id}`,
+    PLACE_BID: (id: string) => `/api/v1/auctions/${id}/bid`,
   },
   ADMIN: {
     USERS: "/api/v1/admin/users",
+    USER_BY_ID: (id: string) => `/api/v1/admin/users/${id}`,
+    USER_CREATE: "/api/v1/admin/users",
+    USER_DELETE: (id: string) => `/api/v1/admin/users/${id}`,
   },
 };

@@ -1,7 +1,7 @@
 import { AuctionModel, IAuction } from "../models/auction.model";
 
 export interface IAuctionRepository {
-  getAll(skip?: number, limit?: number): Promise<IAuction[]>;
+  getAll(page?: number, limit?: number, search?: string, status?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }>;
   getById(id: string): Promise<IAuction | null>;
   getByOwnerId(ownerId: string): Promise<IAuction[]>;
   getBidsByUserId(userId: string): Promise<IAuction[]>;
@@ -12,28 +12,40 @@ export interface IAuctionRepository {
 }
 
 export class AuctionMongoRepository implements IAuctionRepository {
-  async getAll(skip = 0, limit = 20): Promise<IAuction[]> {
-    return await AuctionModel.find().populate("owner").populate("bids.user").skip(skip).limit(limit);
+  async getAll(page: number = 1, limit: number = 20, search?: string, status?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
+    const skip = (page - 1) * limit;
+    const query: Record<string, unknown> = {};
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+    }
+    if (status && status !== "all") {
+      query.status = status;
+    }
+    const auctions = await AuctionModel.find(query).populate("owner", "_id firstName lastName email username role createdAt updatedAt").populate("bids.user", "_id firstName lastName email username").skip(skip).limit(limit).lean();
+    const total = await AuctionModel.countDocuments(query);
+    const totalPages = Math.ceil(total / limit) || 1;
+    return { auctions, total, totalPages };
   }
 
   async getByOwnerId(ownerId: string): Promise<IAuction[]> {
-    return await AuctionModel.find({ owner: ownerId }).populate("owner").populate("bids.user");
+    return await AuctionModel.find({ owner: ownerId }).populate("owner", "_id firstName lastName email username role createdAt updatedAt").populate("bids.user", "_id firstName lastName email username").lean();
   }
 
   async getBidsByUserId(userId: string): Promise<IAuction[]> {
-    return await AuctionModel.find({ "bids.user": userId }).populate("owner").populate("bids.user");
+    return await AuctionModel.find({ "bids.user": userId }).populate("owner", "_id firstName lastName email username role createdAt updatedAt").populate("bids.user", "_id firstName lastName email username").lean();
   }
 
   async getById(id: string): Promise<IAuction | null> {
-    return await AuctionModel.findById(id).populate("owner").populate("bids.user");
+    return await AuctionModel.findById(id).populate("owner", "_id firstName lastName email username role createdAt updatedAt").populate("bids.user", "_id firstName lastName email username").lean();
   }
 
   async createAuction(auction: Partial<IAuction>): Promise<IAuction> {
-    return await AuctionModel.create(auction);
+    const created = await AuctionModel.create(auction);
+    return created.toObject() as IAuction;
   }
 
   async updateAuction(id: string, auction: Partial<IAuction>): Promise<IAuction | null> {
-    return await AuctionModel.findByIdAndUpdate(id, auction, { new: true }).populate("owner").populate("bids.user");
+    return await AuctionModel.findByIdAndUpdate(id, auction, { returnDocument: "after" }).populate("owner", "_id firstName lastName email username role createdAt updatedAt").populate("bids.user", "_id firstName lastName email username").lean();
   }
 
   async deleteAuction(id: string): Promise<boolean> {
@@ -74,8 +86,8 @@ export class AuctionMongoRepository implements IAuctionRepository {
         },
         $max: { currentBid: amount },
       },
-      { new: true }
-    ).populate("owner").populate("bids.user");
+      { returnDocument: "after" }
+    ).populate("owner", "_id firstName lastName email username role createdAt updatedAt").populate("bids.user", "_id firstName lastName email username").lean();
 
     return updateResult;
   }

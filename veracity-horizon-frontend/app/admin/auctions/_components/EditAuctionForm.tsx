@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 import { createAuctionSchema, type CreateAuctionFormData } from "@/app/(auth)/_components/schema";
 import { handleUpdateAuction, handleUploadAuctionImage } from "@/app/lib/actions/auth-actions";
-import { useRouter } from "next/navigation";
+import { imageUrl } from "@/app/lib/api/config";
+import Image from "next/image";
 import imageCompression from "browser-image-compression";
 
 type EditAuctionFormProps = {
@@ -26,7 +28,7 @@ type EditAuctionFormProps = {
 export default function EditAuctionForm({ auction }: EditAuctionFormProps) {
   const router = useRouter();
   const [statusMsg, setStatusMsg] = useState<{ message: string; type: "success" | "error" | null } | null>(null);
-  const [imagePreviews, setImagePreviews] = useState<string[]>(auction.imageUrls || []);
+  const [imagePreviews, setImagePreviews] = useState<string[]>(Array.isArray(auction.imageUrls) ? auction.imageUrls : []);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -222,21 +224,21 @@ export default function EditAuctionForm({ auction }: EditAuctionFormProps) {
 
           {[...imagePreviews, ...pendingFiles].length > 0 && (
             <div className="grid grid-cols-4 gap-3 mt-3">
-              {imagePreviews.map((url, idx) => (
-                <div key={`uploaded-${idx}`} className="relative group">
-                  <img src={url} alt={`Image ${idx + 1}`} className="w-full h-20 object-cover rounded-md border border-gray-200" />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(idx)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Remove image"
-                  >
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+               {imagePreviews.map((url, idx) => (
+                 <div key={`uploaded-${idx}`} className="relative group">
+                   <Image src={imageUrl(url)!} alt={`Image ${idx + 1}`} width={200} height={80} className="w-full h-20 object-cover rounded-md border border-gray-200" />
+                   <button
+                     type="button"
+                     onClick={() => removeImage(idx)}
+                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                     aria-label="Remove image"
+                   >
+                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                     </svg>
+                   </button>
+                 </div>
+               ))}
               {pendingFiles.map((file, idx) => (
                 <div key={`pending-${idx}`} className="relative">
                   <div className="w-full h-20 rounded-md border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">

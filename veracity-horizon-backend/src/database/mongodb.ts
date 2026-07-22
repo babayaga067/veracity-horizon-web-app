@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import { MONGODB_URL } from "../configs/constant";
 
-export const connectToMongoDB = async (): Promise<void> => {
+export async function connectToMongoDB(): Promise<void> {
   try {
     await mongoose.connect(MONGODB_URL);
-    console.log("Connected to MongoDB successfully");
-  } catch (error) {
-    console.error("Error connecting to MongoDB:", error);
-    throw error; // rethrow so app.ts can handle it
+    // Connected successfully
+  } catch (err) {
+    // Re-throw so bootstrap can fail fast
+    throw err;
   }
-};
+}
+

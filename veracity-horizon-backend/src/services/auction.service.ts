@@ -2,6 +2,7 @@ import { AuctionMongoRepository } from "../repositories/auction.repository";
 import { IAuction } from "../models/auction.model";
 import { HttpException } from "../exceptions/http-exception";
 import { Types } from "mongoose";
+import { normalizeImageUrls } from "../utils/image.util";
 
 const auctionRepository = new AuctionMongoRepository();
 
@@ -9,13 +10,14 @@ const PREMIUM_CATEGORIES = ["Art", "Real Estate", "Vehicles", "Collectibles"];
 const FEATURED_PRICE_THRESHOLD = 50000;
 
 export class AuctionService {
-  async getAllAuctions(skip = 0, limit = 20): Promise<IAuction[]> {
-    return await auctionRepository.getAll(skip, limit);
+  async getAllAuctions(page: number = 1, limit: number = 20, search?: string, status?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
+    const result = await auctionRepository.getAll(page, limit, search, status);
+    return result;
   }
 
   async getFeaturedAuctions(): Promise<IAuction[]> {
-    const auctions = await auctionRepository.getAll();
-    return auctions
+    const result = await auctionRepository.getAll(1, 50);
+    return result.auctions
       .filter((a) => this._isFeatured(a))
       .sort((a, b) => (b.bids?.length || 0) - (a.bids?.length || 0))
       .slice(0, 10);
@@ -60,12 +62,14 @@ export class AuctionService {
       title: auctionData.title,
       description: auctionData.description || "",
       startingPrice,
-      category: category as "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate",
+      currentBid: startingPrice,
+      category: category as "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate" | "Textiles" | "Jewelry" | "Antiques" | "Food & Spices" | "Handicrafts" | "Musical Instruments" | "Books & Manuscripts" | "Furniture" | "Sports & Gear" | "Home & Living" | "Industrial Equipment" | "Luxury Goods" | "Agriculture & Livestock" | "Tools & Hardware" | "Ceramics & Pottery" | "Carpets & Rugs" | "Coins & Currency" | "Watches & Timepieces" | "Photography" | "Sculptures" | "Paintings" | "Textbooks & Academic" | "Outdoor & Adventure" | "Health & Wellness" | "Office Supplies" | "Children & Toys" | "Cultural Heritage" | "Religious Items" | "Digital Assets",
       endsAt,
       owner: new Types.ObjectId(ownerId),
       bids: [],
       isFeatured,
-      imageUrls: auctionData.imageUrls || [],
+      imageUrls: normalizeImageUrls(auctionData.imageUrls),
+      status: "upcoming",
     });
 
     return auction;
@@ -83,8 +87,12 @@ export class AuctionService {
       throw new HttpException(404, "Auction not found");
     }
 
-    // Check if user is owner
-    if (auction.owner.toString() === userId) {
+    // Check if user is owner (owner may be a populated document or ObjectId)
+    const ownerId =
+      auction.owner && typeof auction.owner === "object" && "_id" in auction.owner
+        ? String((auction.owner as { _id: unknown })._id)
+        : String(auction.owner);
+    if (ownerId === userId) {
       throw new HttpException(403, "Cannot bid on your own auction");
     }
 
@@ -128,6 +136,7 @@ export class AuctionService {
     const updateData: Partial<IAuction> = {
       ...rest,
       ...(endsAt && { endsAt: new Date(endsAt as string | Date) }),
+      ...(rest.imageUrls !== undefined && { imageUrls: normalizeImageUrls(rest.imageUrls as string[]) }),
     };
     return await auctionRepository.updateAuction(id, updateData);
   }
