@@ -87,8 +87,12 @@ export class AuctionService {
       throw new HttpException(404, "Auction not found");
     }
 
-    // Check if user is owner
-    if (auction.owner.toString() === userId) {
+    // Check if user is owner (owner may be a populated document or ObjectId)
+    const ownerId =
+      auction.owner && typeof auction.owner === "object" && "_id" in auction.owner
+        ? String((auction.owner as { _id: unknown })._id)
+        : String(auction.owner);
+    if (ownerId === userId) {
       throw new HttpException(403, "Cannot bid on your own auction");
     }
 
