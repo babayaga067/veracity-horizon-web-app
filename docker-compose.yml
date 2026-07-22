@@ -1,0 +1,70 @@
+services:
+  backend:
+    build:
+      context: ./veracity-horizon-backend
+      dockerfile: Dockerfile
+    container_name: veracity-horizon-backend
+    ports:
+      - "8089:8089"
+    environment:
+      - NODE_ENV=production
+      - PORT=8089
+      - MONGODB_URL=mongodb://mongo:27017/veracity_horizon
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey}
+      - FRONTEND_URL=http://localhost:3001
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - uploads-data:/app/uploads
+    restart: unless-stopped
+    networks:
+      - veracity-network
+
+  frontend:
+    build:
+      context: ./veracity-horizon-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8089
+    container_name: veracity-horizon-frontend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8089
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - veracity-network
+
+  mongo:
+    image: mongo:8
+    container_name: veracity-horizon-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=veracity_horizon
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - veracity-network
+
+volumes:
+  mongo-data:
+    driver: local
+  uploads-data:
+    driver: local
+
+networks:
+  veracity-network:
+    driver: bridge
