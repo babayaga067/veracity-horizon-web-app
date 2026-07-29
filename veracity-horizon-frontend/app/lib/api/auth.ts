@@ -72,12 +72,11 @@ export const whoami = async (token: string) => {
   }
 };
 
-export const updateProfile = async (data: UpdateProfileData, token: string) => {
+export const updateProfile = async (formData: FormData, token: string) => {
   try {
-    const response = await axios.put<ApiResponse<AuthPayload["user"]>>(`${getApiBase()}${API.AUTH.UPDATE}`, data, {
+    const response = await axios.put<ApiResponse<AuthPayload["user"]>>(`${getApiBase()}${API.AUTH.UPDATE}`, formData, {
       headers: { 
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
       },
     });
     return response.data;
@@ -97,6 +96,44 @@ export const updatePassword = async (data: UpdatePasswordData, token: string) =>
   }
 };
 
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${getApiBase()}${API.AUTH.FORGOT_PASSWORD}`, { email });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to send reset link"));
+  }
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${getApiBase()}${API.AUTH.RESET_PASSWORD(token)}`, {
+      newPassword,
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to reset password"));
+  }
+};
+
+export const sendVerificationEmail = async (email: string) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${getApiBase()}${API.AUTH.SEND_VERIFICATION_EMAIL}`, { email });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to send verification email"));
+  }
+};
+
+export const verifyEmail = async (token: string) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${getApiBase()}${API.AUTH.VERIFY_EMAIL}`, { token });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to verify email"));
+  }
+};
+
 export const uploadImage = async (file: File, token: string) => {
   try {
     const formData = new FormData();
@@ -111,5 +148,50 @@ export const uploadImage = async (file: File, token: string) => {
     return response.data;
   } catch (error: unknown) {
     throw new Error(getApiErrorMessage(error, "Image upload failed"));
+  }
+};
+
+export const getNotifications = async (page: number = 1, limit: number = 20, token: string) => {
+  try {
+    const response = await axios.get<ApiResponse<unknown[]>>(`${getApiBase()}${API.NOTIFICATIONS.LIST}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { page, limit },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to fetch notifications"));
+  }
+};
+
+export const markNotificationAsRead = async (id: string, token: string) => {
+  try {
+    const response = await axios.patch<ApiResponse<null>>(`${getApiBase()}${API.NOTIFICATIONS.MARK_READ(id)}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to mark notification as read"));
+  }
+};
+
+export const markAllNotificationsAsRead = async (token: string) => {
+  try {
+    const response = await axios.patch<ApiResponse<null>>(`${getApiBase()}${API.NOTIFICATIONS.MARK_ALL_READ}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to mark all notifications as read"));
+  }
+};
+
+export const getUnreadNotificationCount = async (token: string) => {
+  try {
+    const response = await axios.get<ApiResponse<{ count: number }>>(`${getApiBase()}${API.NOTIFICATIONS.UNREAD_COUNT}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to fetch unread count"));
   }
 };

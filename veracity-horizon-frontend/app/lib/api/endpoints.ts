@@ -6,6 +6,10 @@ export const API = {
     UPDATE: "/api/v1/auth/update",
     UPLOAD: "/api/v1/auth/upload",
     PASSWORD: "/api/v1/auth/password",
+    FORGOT_PASSWORD: "/api/v1/auth/forgot-password",
+    RESET_PASSWORD: (token: string) => `/api/v1/auth/reset-password/${token}`,
+    SEND_VERIFICATION_EMAIL: "/api/v1/auth/send-verification-email",
+    VERIFY_EMAIL: "/api/v1/auth/verify-email",
   },
   AUCTIONS: {
     LIST: "/api/v1/auctions",
@@ -16,11 +20,23 @@ export const API = {
     MY_BIDS: "/api/v1/auctions/my-bids",
     BY_ID: (id: string) => `/api/v1/auctions/${id}`,
     PLACE_BID: (id: string) => `/api/v1/auctions/${id}/bid`,
+    MY_WON_AUCTIONS: "/api/v1/auctions/my-won-auctions",
+  },
+  NOTIFICATIONS: {
+    LIST: "/api/v1/notifications",
+    MARK_READ: (id: string) => `/api/v1/notifications/${id}/read`,
+    MARK_ALL_READ: "/api/v1/notifications/read-all",
+    UNREAD_COUNT: "/api/v1/notifications/unread-count",
   },
   ADMIN: {
     USERS: "/api/v1/admin/users",
     USER_BY_ID: (id: string) => `/api/v1/admin/users/${id}`,
     USER_CREATE: "/api/v1/admin/users",
     USER_DELETE: (id: string) => `/api/v1/admin/users/${id}`,
+  },
+  AI: {
+    SEARCH: "/api/v1/ai/search",
+    NAVIGATE: "/api/v1/ai/navigate",
+    SUGGESTIONS: "/api/v1/ai/suggestions",
   },
 };

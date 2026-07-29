@@ -12,6 +12,9 @@ export interface IUser extends UserType, Document {
   profileImage?: string;
   fullName?: string;
   phoneNumber?: string;
+  isVerified: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,9 +30,15 @@ const UserMongoSchema: Schema = new Schema<IUser>(
     profileImage: { type: String },
     fullName: { type: String },
     phoneNumber: { type: String },
+    isVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String },
+    emailVerificationExpires: { type: Date },
   },
 
   { timestamps: true }
 );
+
+UserMongoSchema.index({ emailVerificationToken: 1 }, { sparse: true });
+UserMongoSchema.index({ emailVerificationExpires: 1 }, { expireAfterSeconds: 0, partialFilterExpression: { emailVerificationToken: { $exists: true } } });
 
 export const UserModel = mongoose.model<IUser>("User", UserMongoSchema);

@@ -47,14 +47,14 @@ export function EmptyState({ icon, title, description, actionLabel, actionHref, 
       {actionLabel && (actionHref ? (
         <Link
           href={actionHref}
-          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30"
+          className="btn-primary px-6 py-2.5 text-sm font-bold rounded-xl"
         >
           {actionLabel}
         </Link>
       ) : (
         <button
           onClick={onAction}
-          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30"
+          className="btn-primary px-6 py-2.5 text-sm font-bold rounded-xl"
         >
           {actionLabel}
         </button>

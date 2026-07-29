@@ -57,36 +57,40 @@ export default function AuctionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-gray-900">
+    <div className="min-h-screen animated-gradient font-sans antialiased text-slate-900 overflow-x-hidden">
+      {/* Floating Orbs */}
+      <div className="fixed top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl float pointer-events-none"></div>
+      <div className="fixed bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl float-delayed pointer-events-none"></div>
+
       <Sidebar />
-      <main className="ml-64 min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-          <div className="border-b border-gray-200 pb-4">
-            <h1 className="text-2xl font-bold text-gray-900">My Auctions</h1>
-            <p className="text-gray-500 mt-1 text-sm">Manage your auction listings</p>
+      <main className="ml-64 min-h-screen relative z-10">
+        <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Auctions</h1>
+            <p className="text-slate-500 mt-2 text-sm font-medium">Manage your auction listings</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <div className="glass-card border border-red-200/50 rounded-2xl p-5 text-red-700 text-sm">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-red-700 font-medium">{error}</p>
+                <p className="font-bold">{error}</p>
               </div>
             </div>
           )}
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row gap-4">
+          <div className="glass-card rounded-3xl border border-white/50 p-4 flex flex-col sm:flex-row gap-4">
             <div className="flex items-center gap-2 overflow-x-auto">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium uppercase tracking-wider whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-200 ${
                     selectedCategory === cat
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30"
+                      : "bg-white/50 text-slate-600 hover:bg-white border border-white/50"
                   }`}
                 >
                   {cat}
@@ -94,7 +98,7 @@ export default function AuctionsPage() {
               ))}
             </div>
             <div className="relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -102,12 +106,12 @@ export default function AuctionsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search auctions..."
-                className="pl-10 pr-4 py-2 w-64 rounded-md border border-gray-300 text-sm focus:outline-none focus:border-blue-500"
+                className="pl-10 pr-4 py-2.5 w-64 rounded-xl border border-white/50 bg-white/50 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {isLoading ? (
               [1, 2, 3, 4, 5, 6].map((i) => <SkeletonCard key={i} />)
             ) : filteredAuctions.length > 0 ? (
@@ -124,7 +128,7 @@ export default function AuctionsPage() {
           </div>
 
           {!isLoading && !error && (
-            <div className="text-center text-sm text-gray-500 pt-4">
+            <div className="text-center text-sm text-slate-500 pt-4 font-medium">
               Showing {filteredAuctions.length} of {auctions.length} auctions
             </div>
           )}
@@ -133,3 +137,4 @@ export default function AuctionsPage() {
     </div>
   );
 }
+

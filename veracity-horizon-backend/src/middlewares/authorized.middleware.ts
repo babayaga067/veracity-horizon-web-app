@@ -16,43 +16,41 @@ declare global {
 
 const userRepository = new UserMongoRepository();
 
-export const authorizedMiddleware = (
+export const authorizedMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  (async () => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader?.startsWith("Bearer ")) {
-        throw new HttpException(401, "Unauthorized JWT invalid");
-      }
-
-      const token = authHeader.split(" ")[1];
-      if (!token) throw new HttpException(401, "Unauthorized JWT missing");
-
-      const decodedToken = jwt.verify(token, SECRET_KEY) as { id: string };
-      if (!decodedToken?.id) {
-        throw new HttpException(401, "Unauthorized JWT unverified");
-      }
-
-      const user = await userRepository.getUserById(decodedToken.id);
-      if (!user) throw new HttpException(401, "Unauthorized user not found");
-
-      req.user = user;
-      return next();
-    } catch (err) {
-      const error = err as { name?: string; message?: string; status?: number };
-      if (error.name === "TokenExpiredError") {
-        return ApiResponseHelper.error(res, "JWT expired", 401);
-      }
-      return ApiResponseHelper.error(
-        res,
-        error.message || "Internal Server Error",
-        error.status || 500
-      );
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      throw new HttpException(401, "Unauthorized JWT invalid");
     }
-  })();
+
+    const token = authHeader.split(" ")[1];
+    if (!token) throw new HttpException(401, "Unauthorized JWT missing");
+
+    const decodedToken = jwt.verify(token, SECRET_KEY) as { id: string };
+    if (!decodedToken?.id) {
+      throw new HttpException(401, "Unauthorized JWT unverified");
+    }
+
+    const user = await userRepository.getUserById(decodedToken.id);
+    if (!user) throw new HttpException(401, "Unauthorized user not found");
+
+    req.user = user;
+    return next();
+  } catch (err) {
+    const error = err as { name?: string; message?: string; status?: number };
+    if (error.name === "TokenExpiredError") {
+      return ApiResponseHelper.error(res, "JWT expired", 401);
+    }
+    return ApiResponseHelper.error(
+      res,
+      error.message || "Internal Server Error",
+      error.status || 500
+    );
+  }
 };
 
 export const adminMiddleware = async (

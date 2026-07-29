@@ -77,9 +77,24 @@ export const getMyBids = async (token: string) => {
   }
 };
 
+export const getWonAuctions = async (token: string, page = 1, limit = 20) => {
+  try {
+    const response = await axios.get<ApiResponse<Auction[]>>(`${getApiBase()}${API.AUCTIONS.MY_WON_AUCTIONS}?page=${page}&limit=${limit}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    throw new Error(getApiErrorMessage(error, "Failed to fetch won auctions"));
+  }
+};
+
 export const placeBid = async (auctionId: string, amount: number, token: string) => {
   try {
-    const idempotencyKey = `${auctionId}-${amount}-${Date.now()}`;
+    const generateIdempotencyKey = (auctionId: string, amount: number): string => {
+      const randomPart = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      return `${auctionId}-${amount}-${randomPart}-${Date.now()}`;
+    };
+    const idempotencyKey = generateIdempotencyKey(auctionId, amount);
     const response = await axios.post<ApiResponse<unknown>>(`${getApiBase()}${API.AUCTIONS.PLACE_BID(auctionId)}`, { amount }, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -103,6 +118,8 @@ export const createAuction = async (data: {
   category: string;
   endsAt?: string;
   imageUrls?: string[];
+  status?: string;
+  isFeatured?: boolean;
 }, token: string) => {
   try {
     const response = await axios.post<ApiResponse<Auction>>(`${getApiBase()}${API.AUCTIONS.CREATE}`, data, {

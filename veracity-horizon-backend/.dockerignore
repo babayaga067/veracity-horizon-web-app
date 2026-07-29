@@ -1,4 +1,5 @@
 node_modules
+.kilo
 .next
 out
 dist
@@ -11,3 +12,4 @@ README.md
 .DS_Store
 coverage
 .nyc_output
+tsconfig.tsbuildinfo

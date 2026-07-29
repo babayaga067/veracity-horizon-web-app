@@ -1,6 +1,7 @@
-import Link from "next/link";
+"use client";
 
-import CreateAuctionForm from "@/app/(auth)/_components/CreateAuctionForm";
+import Link from "next/link";
+import AdminAuctionForm from "../_components/AdminAuctionForm";
 
 export default function CreateAuctionPage() {
   return (
@@ -19,7 +20,7 @@ export default function CreateAuctionPage() {
           <p className="text-gray-500 mt-1 text-sm">Add a new auction to the marketplace</p>
         </div>
       </div>
-      <CreateAuctionForm />
+      <AdminAuctionForm />
     </div>
   );
 }

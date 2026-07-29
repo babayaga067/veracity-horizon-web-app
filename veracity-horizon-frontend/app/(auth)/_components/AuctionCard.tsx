@@ -52,12 +52,12 @@ export function AuctionCard({ auction, showImage = true, compact = false }: Auct
     return (
       <Link
         href={`/dashboard/auctions/${auction._id}`}
-        className="block bg-white rounded-xl border border-gray-100 p-4 hover:shadow-lg hover:border-gray-200 transition-all duration-200 group"
+        className="block glass-card rounded-2xl border border-white/50 p-4 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 group dark:border-white/10 dark:hover:shadow-blue-500/20"
       >
         <div className="flex gap-4">
-          <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">
+          <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 relative">
             {imgSrc ? (
-              <Image src={imgSrc} alt={title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+              <Image src={imgSrc} alt={title} fill className="object-cover group-hover:scale-110 transition-transform duration-300" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
@@ -68,15 +68,15 @@ export function AuctionCard({ auction, showImage = true, compact = false }: Auct
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{title}</h4>
+              <h4 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{title}</h4>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusColor(status)}`}>
                 {(status || "upcoming").toUpperCase()}
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-1 line-clamp-1">{category}</p>
+            <p className="text-sm text-slate-500 mt-1 line-clamp-1 font-medium">{category}</p>
             <div className="flex items-center justify-between mt-2">
               <span className="text-lg font-bold text-slate-900">{formatCurrency(auction.currentBid || auction.startingPrice)}</span>
-              <span className="text-xs text-slate-400">{getTimeLeft(auction.endsAt)}</span>
+              <span className="text-xs text-slate-400 font-medium">{getTimeLeft(auction.endsAt)}</span>
             </div>
           </div>
         </div>
@@ -87,10 +87,10 @@ export function AuctionCard({ auction, showImage = true, compact = false }: Auct
   return (
     <Link
       href={`/dashboard/auctions/${auction._id}`}
-      className="block bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:border-gray-200 transition-all duration-300 group"
+      className="block glass-card rounded-2xl border border-white/50 overflow-hidden hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 group dark:border-white/10 dark:hover:shadow-blue-500/20"
     >
       {showImage && (
-        <div className="relative h-48 bg-gray-100 overflow-hidden">
+        <div className="relative h-48 bg-slate-100 overflow-hidden">
           {imgSrc ? (
             <Image src={imgSrc} alt={title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
           ) : (
@@ -107,7 +107,7 @@ export function AuctionCard({ auction, showImage = true, compact = false }: Auct
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{category}</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{category}</span>
             <h3 className="text-lg font-bold text-slate-900 mt-1 truncate group-hover:text-blue-600 transition-colors">{title}</h3>
           </div>
           <div className="text-right flex-shrink-0">
@@ -116,14 +116,14 @@ export function AuctionCard({ auction, showImage = true, compact = false }: Auct
           </div>
         </div>
         <p className="text-sm text-slate-500 mt-2 line-clamp-2">{auction.description || "No description available"}</p>
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/30">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600">
               {ownerFirstName[0]}{ownerLastName[0]}
             </div>
-            <span className="text-xs text-slate-500">{ownerFirstName} {ownerLastName}</span>
+            <span className="text-xs text-slate-500 font-medium">{ownerFirstName} {ownerLastName}</span>
           </div>
-          <span className="text-xs text-slate-400 flex items-center gap-1">
+          <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>

@@ -1,48 +1,61 @@
-import BackArrow from "@/app/(components)/BackArrow";
-import UserForm from "@/app/admin/_components/UserForm";
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import EditUserForm from "@/app/admin/_components/UserForm";
 import { fetchUserByIdAction } from "@/app/lib/actions/admin-user-action";
+import type { User } from "@/app/lib/types/user";
 
-interface EditUserPageProps {
-  params: Promise<{ id: string }>;
-}
+export default function EditUserPage() {
+  const params = useParams<{ id: string }>();
+  const [initialData, setInitialData] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default async function EditUserPage({ params }: EditUserPageProps) {
-  const { id } = await params;
-  const response = await fetchUserByIdAction(id);
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const result = await fetchUserByIdAction(params.id);
+        if (result.success && result.data) {
+          setInitialData(result.data);
+        } else {
+          setError(result.message || "User not found");
+        }
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to fetch user");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUser();
+  }, [params.id]);
 
-  if (!response.success || !response.data) {
+  if (loading) {
     return (
-      <div>
-        <div className="flex items-center gap-3 mb-6">
-          <BackArrow href="/admin/users" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit User</h1>
-            <p className="text-gray-500 mt-1 text-sm">Update user account details</p>
-          </div>
-        </div>
-        <div className="max-w-3xl">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-            <p className="text-red-600 text-sm">{response.message || "User not found."}</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (error || !initialData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass-card border-red-200 rounded-2xl p-5 text-red-700">
+          <p className="font-bold">{error || "User not found"}</p>
+          <Link href="/admin/users" className="btn-outline mt-4 inline-block px-4 py-2 text-sm font-bold rounded-xl">
+            Back to Users
+          </Link>
         </div>
       </div>
     );
   }
 
-  const user = response.data;
-
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <BackArrow href="/admin/users" />
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit User</h1>
-          <p className="text-gray-500 mt-1 text-sm">Update user account details</p>
-        </div>
-      </div>
-      <div className="max-w-3xl">
-        <UserForm mode="edit" user={user} />
-      </div>
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Edit User</h1>
+      <EditUserForm mode="edit" user={initialData} />
     </div>
   );
 }

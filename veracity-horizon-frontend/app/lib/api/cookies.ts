@@ -29,6 +29,7 @@ export async function storeUserData(userData: Record<string, unknown>) {
   const cookieStore = await cookies();
   const safe = sanitizeUser(userData);
   cookieStore.set("user_data", JSON.stringify(safe), {
+    httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     maxAge: SESSION_MAX_AGE,

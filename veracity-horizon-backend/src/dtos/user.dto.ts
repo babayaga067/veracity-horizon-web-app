@@ -36,5 +36,6 @@ export const UpdateUserDTO = UserSchema.partial().pick({
   profileImage: true,
   fullName: true,
   phoneNumber: true,
+  isVerified: true,
 });
 export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;

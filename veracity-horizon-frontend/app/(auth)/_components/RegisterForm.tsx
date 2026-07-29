@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { handleRegisterUser } from "@/app/lib/actions/auth-actions";
 import Link from "next/link";
+import { useToast } from "@/app/(auth)/_components/Toast";
 import { EyeIcon, EyeOffIcon } from "@/app/(auth)/_components/EyeIcon";
 
 export default function RegisterForm() {
@@ -15,6 +16,7 @@ export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const { addToast } = useToast();
 
   const {
     register,
@@ -30,15 +32,19 @@ export default function RegisterForm() {
       try {
         const result = await handleRegisterUser(data);
         if (result.success) {
+          addToast("Registration successful! Please sign in.", "success");
           router.push("/login");
         } else {
           setError(result.message || "Registration failed. Please review your information.");
+          addToast(result.message || "Registration failed", "error");
         }
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
+          addToast(err.message, "error");
         } else {
           setError("An unexpected network error occurred. Please try again.");
+          addToast("Network error", "error");
         }
       }
     });
@@ -48,71 +54,71 @@ export default function RegisterForm() {
     <div className="w-full">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {error && (
-          <div className="p-4 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
+          <div className="p-4 bg-red-50/90 backdrop-blur-sm border-2 border-red-200 rounded-xl flex items-start gap-3 text-red-800">
             <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-sm font-medium">{error}</p>
+            <p className="text-sm font-bold">{error}</p>
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-bold text-slate-700 mb-2">First Name</label>
+            <label htmlFor="firstName" className="block text-sm font-bold text-slate-800 mb-2">First Name</label>
             <input
               id="firstName"
               type="text"
               {...register("firstName")}
               placeholder="Legal first name"
               disabled={isPending || isSubmitting}
-              className={`w-full px-4 py-3.5 rounded-xl border ${errors.firstName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3.5 rounded-xl border-2 ${errors.firstName ? 'border-red-500 ring-2 ring-red-500' : 'border-slate-200'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
             />
-            {errors.firstName && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.firstName.message}</span>}
+            {errors.firstName && <span className="text-xs text-red-600 font-bold mt-1.5 block">{errors.firstName.message}</span>}
           </div>
 
           <div>
-            <label htmlFor="lastName" className="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
+            <label htmlFor="lastName" className="block text-sm font-bold text-slate-800 mb-2">Last Name</label>
             <input
               id="lastName"
               type="text"
               {...register("lastName")}
               placeholder="Legal last name"
               disabled={isPending || isSubmitting}
-              className={`w-full px-4 py-3.5 rounded-xl border ${errors.lastName ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+              className={`w-full px-4 py-3.5 rounded-xl border-2 ${errors.lastName ? 'border-red-500 ring-2 ring-red-500' : 'border-slate-200'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
             />
-            {errors.lastName && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.lastName.message}</span>}
+            {errors.lastName && <span className="text-xs text-red-600 font-bold mt-1.5 block">{errors.lastName.message}</span>}
           </div>
         </div>
 
         <div>
-          <label htmlFor="username" className="block text-sm font-bold text-slate-700 mb-2">Bidder Username</label>
+          <label htmlFor="username" className="block text-sm font-bold text-slate-800 mb-2">Bidder Username</label>
           <input
             id="username"
             type="text"
             {...register("username")}
             placeholder="Unique username"
             disabled={isPending || isSubmitting}
-            className={`w-full px-4 py-3.5 rounded-xl border ${errors.username ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+            className={`w-full px-4 py-3.5 rounded-xl border-2 ${errors.username ? 'border-red-500 ring-2 ring-red-500' : 'border-slate-200'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
           />
-          {errors.username && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.username.message}</span>}
+          {errors.username && <span className="text-xs text-red-600 font-bold mt-1.5 block">{errors.username.message}</span>}
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+          <label htmlFor="email" className="block text-sm font-bold text-slate-800 mb-2">Email Address</label>
           <input
             id="email"
             type="email"
             {...register("email")}
             placeholder="you@example.com"
             disabled={isPending || isSubmitting}
-            className={`w-full px-4 py-3.5 rounded-xl border ${errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+            className={`w-full px-4 py-3.5 rounded-xl border-2 ${errors.email ? 'border-red-500 ring-2 ring-red-500' : 'border-slate-200'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
           />
-          {errors.email && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.email.message}</span>}
+          {errors.email && <span className="text-xs text-red-600 font-bold mt-1.5 block">{errors.email.message}</span>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="password" className="block text-sm font-bold text-slate-700 mb-2">Password</label>
+            <label htmlFor="password" className="block text-sm font-bold text-slate-800 mb-2">Password</label>
             <div className="relative">
               <input
                 id="password"
@@ -120,7 +126,7 @@ export default function RegisterForm() {
                 {...register("password")}
                 placeholder="••••••••"
                 disabled={isPending || isSubmitting}
-                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border ${errors.password ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border-2 ${errors.password ? 'border-red-500 ring-2 ring-red-500' : 'border-slate-200'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
               />
               <button
                 type="button"
@@ -132,11 +138,11 @@ export default function RegisterForm() {
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
-            {errors.password && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.password.message}</span>}
+            {errors.password && <span className="text-xs text-red-600 font-bold mt-1.5 block">{errors.password.message}</span>}
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-bold text-slate-700 mb-2">Confirm Password</label>
+            <label htmlFor="confirmPassword" className="block text-sm font-bold text-slate-800 mb-2">Confirm Password</label>
             <div className="relative">
               <input
                 id="confirmPassword"
@@ -144,7 +150,7 @@ export default function RegisterForm() {
                 {...register("confirmPassword")}
                 placeholder="••••••••"
                 disabled={isPending || isSubmitting}
-                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border ${errors.confirmPassword ? 'border-red-500 ring-1 ring-red-500' : 'border-slate-300'} bg-white/80 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
+                className={`w-full pl-4 pr-10 py-3.5 rounded-xl border-2 ${errors.confirmPassword ? 'border-red-500 ring-2 ring-red-500' : 'border-slate-200'} bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed`}
               />
               <button
                 type="button"
@@ -156,7 +162,7 @@ export default function RegisterForm() {
                 {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
-            {errors.confirmPassword && <span className="text-xs text-red-600 font-medium mt-1.5 block">{errors.confirmPassword.message}</span>}
+            {errors.confirmPassword && <span className="text-xs text-red-600 font-bold mt-1.5 block">{errors.confirmPassword.message}</span>}
           </div>
         </div>
 
@@ -180,7 +186,7 @@ export default function RegisterForm() {
 
         <div className="pt-4 text-center text-slate-600">
           Already have a bidder account?{" "}
-          <Link href="/login" className="text-blue-600 font-bold hover:text-blue-700 transition-colors">
+          <Link href="/login" className="text-indigo-600 font-bold hover:text-indigo-700 transition-colors">
             Sign in here
           </Link>
         </div>

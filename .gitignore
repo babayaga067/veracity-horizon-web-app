@@ -1,0 +1,35 @@
+# AI/Tooling
+.kilo/
+.cursor/
+.continued/
+.copilot/
+
+# Monorepo build artifacts
+veracity-horizon-backend/node_modules
+veracity-horizon-frontend/node_modules
+veracity-horizon-backend/dist
+veracity-horizon-backend/coverage
+veracity-horizon-backend/uploads
+veracity-horizon-frontend/.next
+veracity-horizon-frontend/playwright-report
+veracity-horizon-frontend/test-results
+veracity-horizon-frontend/tsconfig.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

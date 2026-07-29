@@ -19,17 +19,19 @@ export default async function AdminUsersPage({
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="text-gray-500 mt-1 text-sm">Manage user accounts and permissions</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">User Management</h1>
+        <p className="text-slate-500 mt-2 text-sm font-medium">Manage user accounts and permissions</p>
       </div>
 
-      <UserTable
-        users={response.data.data}
-        pagination={response.data.meta}
-        search={searchValue}
-      />
+      <div className="glass-card rounded-3xl border border-white/50 overflow-hidden">
+        <UserTable
+          users={response.data.data}
+          pagination={response.data.meta}
+          search={searchValue}
+        />
+      </div>
     </div>
   );
 }

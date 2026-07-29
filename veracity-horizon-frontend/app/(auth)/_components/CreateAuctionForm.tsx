@@ -8,6 +8,7 @@ import { handleCreateAuction, handleUploadAuctionImage } from "@/app/lib/actions
 import { imageUrl } from "@/app/lib/api/config";
 import Image from "next/image";
 import imageCompression from "browser-image-compression";
+import { useToast } from "@/app/(auth)/_components/Toast";
 
 interface CreateAuctionFormProps {
   onSuccess?: () => void;
@@ -29,6 +30,7 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const { addToast } = useToast();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -86,56 +88,59 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
 
     if (result.success) {
       setStatus({ message: "Auction created successfully", type: "success" });
+      addToast("Auction created successfully!", "success");
       reset();
       setImagePreviews([]);
       onSuccess?.();
     } else {
       setStatus({ message: result.message || "Failed to create auction", type: "error" });
+      addToast(result.message || "Failed to create auction", "error");
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-8">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-6">Create New Auction</h2>
+    <div className="glass-card rounded-3xl border border-white/50 p-8">
+      <h2 className="text-2xl font-bold tracking-tight text-slate-900 mb-2">Create New Auction</h2>
+      <p className="text-slate-500 text-sm mb-6">Fill in the details below to list your item for auction.</p>
 
       {status && (
-        <div className={`p-4 rounded-xl mb-4 ${
-          status.type === "success" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"
+        <div className={`p-4 rounded-xl mb-6 border-2 ${
+          status.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-red-50 border-red-200 text-red-800"
         }`}>
-          <p className="text-sm font-medium">{status.message}</p>
+          <p className="text-sm font-bold">{status.message}</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold text-slate-700 mb-2">Title</label>
+          <label htmlFor="title" className="block text-sm font-bold text-slate-800 mb-2">Title</label>
           <input
             id="title"
             type="text"
             {...register("title")}
             placeholder="Auction title"
             disabled={isSubmitting || uploading}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
           />
-          {errors.title && <span className="text-xs text-red-600 mt-1">{errors.title.message}</span>}
+          {errors.title && <span className="text-xs text-red-600 mt-1.5 font-medium">{errors.title.message}</span>}
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+          <label htmlFor="description" className="block text-sm font-bold text-slate-800 mb-2">Description</label>
           <textarea
             id="description"
             {...register("description")}
             placeholder="Item description"
             rows={4}
             disabled={isSubmitting || uploading}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
           />
-          {errors.description && <span className="text-xs text-red-600 mt-1">{errors.description.message}</span>}
+          {errors.description && <span className="text-xs text-red-600 mt-1.5 font-medium">{errors.description.message}</span>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="startingPrice" className="block text-sm font-semibold text-slate-700 mb-2">Starting Price (रु)</label>
+            <label htmlFor="startingPrice" className="block text-sm font-bold text-slate-800 mb-2">Starting Price (रु)</label>
             <input
               id="startingPrice"
               type="number"
@@ -144,18 +149,18 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
               step="1"
               min="1"
               disabled={isSubmitting || uploading}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
-            {errors.startingPrice && <span className="text-xs text-red-600 mt-1">{errors.startingPrice.message}</span>}
+            {errors.startingPrice && <span className="text-xs text-red-600 mt-1.5 font-medium">{errors.startingPrice.message}</span>}
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+            <label htmlFor="category" className="block text-sm font-bold text-slate-800 mb-2">Category</label>
             <select
               id="category"
               {...register("category")}
               disabled={isSubmitting || uploading}
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
             >
               <option value="">Select category</option>
               <option value="Art">Art</option>
@@ -195,45 +200,45 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
               <option value="Digital Assets">Digital Assets</option>
 
             </select>
-            {errors.category && <span className="text-xs text-red-600 mt-1">{errors.category.message}</span>}
+            {errors.category && <span className="text-xs text-red-600 mt-1.5 font-medium">{errors.category.message}</span>}
           </div>
         </div>
 
         <div>
-          <label htmlFor="endsAt" className="block text-sm font-semibold text-slate-700 mb-2">End Date (optional)</label>
+          <label htmlFor="endsAt" className="block text-sm font-bold text-slate-800 mb-2">End Date (optional)</label>
           <input
             id="endsAt"
             type="datetime-local"
             {...register("endsAt")}
             disabled={isSubmitting || uploading}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
           />
-          {errors.endsAt && <span className="text-xs text-red-600 mt-1">{errors.endsAt.message}</span>}
+          {errors.endsAt && <span className="text-xs text-red-600 mt-1.5 font-medium">{errors.endsAt.message}</span>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Images</label>
+          <label className="block text-sm font-bold text-slate-800 mb-2">Images</label>
           <input
             type="file"
             accept="image/*"
             multiple
             onChange={handleImageUpload}
             disabled={isSubmitting || uploading}
-            className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+            className="block w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:transition-all cursor-pointer"
           />
-          {uploading && <span className="text-xs text-blue-600 mt-1">Uploading...</span>}
-          {uploadError && <span className="text-xs text-red-600 mt-1">{uploadError}</span>}
+          {uploading && <span className="text-xs text-indigo-600 mt-1.5 font-medium">Uploading...</span>}
+          {uploadError && <span className="text-xs text-red-600 mt-1.5 font-medium">{uploadError}</span>}
         </div>
 
         {[...imagePreviews, ...pendingFiles].length > 0 && (
           <div className="grid grid-cols-3 gap-3">
           {imagePreviews.map((url, idx) => (
                 <div key={`uploaded-${idx}`} className="relative group">
-                  <Image src={imageUrl(url)!} alt={`Image ${idx + 1}`} width={200} height={96} className="w-full h-24 object-cover rounded-lg border border-gray-200" />
+                  <Image src={imageUrl(url)!} alt={`Image ${idx + 1}`} width={200} height={96} className="w-full h-24 object-cover rounded-xl border border-white/50" />
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                   aria-label="Remove image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -244,19 +249,19 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
             ))}
             {pendingFiles.map((file, idx) => (
               <div key={`pending-${idx}`} className="relative">
-                <div className="w-full h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                  <span className="text-xs text-gray-500 px-2 text-center truncate">{file.name}</span>
+                <div className="w-full h-24 rounded-xl border-2 border-dashed border-white/50 flex items-center justify-center bg-white/30">
+                  <span className="text-xs text-slate-500 px-2 text-center truncate font-medium">{file.name}</span>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4">
           <button
             type="submit"
             disabled={isSubmitting || uploading}
-            className="flex-1 py-3.5 px-4 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg transition-all"
+            className="btn-primary flex-1 py-3.5 px-4 text-sm font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Creating..." : "Create Auction"}
           </button>
@@ -265,7 +270,7 @@ export default function CreateAuctionForm({ onSuccess, onCancel }: CreateAuction
               type="button"
               onClick={onCancel}
               disabled={isSubmitting || uploading}
-              className="px-6 py-3 border border-slate-300 rounded-xl font-semibold text-slate-700 hover:bg-slate-50"
+              className="btn-outline px-6 py-3 rounded-xl"
             >
               Cancel
             </button>

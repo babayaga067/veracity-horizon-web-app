@@ -1,6 +1,6 @@
 "use server";
 
-import { register, login, updateProfile, updatePassword, whoami, uploadImage } from "@/app/lib/api/auth";
+import { register, login, updateProfile, updatePassword, whoami, uploadImage, forgotPassword, resetPassword, sendVerificationEmail, verifyEmail } from "@/app/lib/api/auth";
 import { createAuction, uploadAuctionImage, getMyAuctions, getMyBids, placeBid, updateAuction, deleteAuction } from "@/app/lib/api/auctions";
 import { RegisterFormData, LoginFormData } from "@/app/(auth)/_components/schema";
 import { setTokenCookie, storeUserData, clearAuthCookies, getTokenCookie } from "../api/cookies";
@@ -53,28 +53,7 @@ export const handleUpdateProfile = async (formData: FormData) => {
       return { success: false, message: "Not authenticated" };
     }
 
-    const data: Record<string, string> = {};
-    if (formData.get("firstName")) data.firstName = formData.get("firstName") as string;
-    if (formData.get("lastName")) data.lastName = formData.get("lastName") as string;
-    if (formData.get("username")) data.username = formData.get("username") as string;
-    if (formData.get("fullName")) data.fullName = formData.get("fullName") as string;
-    if (formData.get("phoneNumber")) data.phoneNumber = formData.get("phoneNumber") as string;
-
-    const profileImage = formData.get("profileImage");
-    let profileImageUrl: string | undefined;
-
-    if (profileImage instanceof File) {
-      const uploadResult = await uploadImage(profileImage, token);
-      if (uploadResult.success && uploadResult.data?.url) {
-        profileImageUrl = uploadResult.data.url;
-      }
-    }
-
-    if (profileImageUrl) {
-      data.profileImage = profileImageUrl;
-    }
-
-    const result = await updateProfile(data, token);
+    const result = await updateProfile(formData, token);
     if (result.success && result.data) {
       await storeUserData(result.data);
     }
@@ -131,6 +110,8 @@ export const handleCreateAuction = async (data: {
   category: string;
   endsAt?: string;
   imageUrls?: string[];
+  status?: string;
+  isFeatured?: boolean;
 }) => {
   try {
     const token = await getTokenCookie();
@@ -269,5 +250,63 @@ export const handleDeleteAuction = async (id: string) => {
       return { success: false, message: error.message };
     }
     return { success: false, message: "Failed to delete auction" };
+  }
+};
+
+export const handleForgotPassword = async (email: string) => {
+  try {
+    const result = await forgotPassword(email);
+    return result.success
+      ? { success: true, message: result.message || "Password reset link sent" }
+      : { success: false, message: result.message || "Failed to send reset link" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to send reset link" };
+  }
+};
+
+export const handleRequestPasswordReset = handleForgotPassword;
+
+export const handleResetPassword = async (token: string, newPassword: string) => {
+  try {
+    const result = await resetPassword(token, newPassword);
+    return result.success
+      ? { success: true, message: result.message || "Password reset successfully" }
+      : { success: false, message: result.message || "Failed to reset password" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to reset password" };
+  }
+};
+
+export const handleSendVerificationEmail = async (email: string) => {
+  try {
+    const result = await sendVerificationEmail(email);
+    return result.success
+      ? { success: true, message: result.message || "Verification email sent" }
+      : { success: false, message: result.message || "Failed to send verification email" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to send verification email" };
+  }
+};
+
+export const handleVerifyEmail = async (token: string) => {
+  try {
+    const result = await verifyEmail(token);
+    return result.success
+      ? { success: true, message: result.message || "Email verified successfully" }
+      : { success: false, message: result.message || "Failed to verify email" };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to verify email" };
   }
 };

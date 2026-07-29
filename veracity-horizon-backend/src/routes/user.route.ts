@@ -13,5 +13,9 @@ userRouter.post("/logout", authorizedMiddleware, (req, res) => userController.lo
 userRouter.put("/update", authorizedMiddleware, upload.single("profileImage"), (req, res) => userController.updateUser(req, res));
 userRouter.post("/upload", authorizedMiddleware, upload.single("file"), (req, res, next) => userController.uploadProfileImage(req, res, next));
 userRouter.post("/password", authorizedMiddleware, (req, res) => userController.updatePassword(req, res));
+userRouter.post("/forgot-password", userController.forgotPassword);
+userRouter.post("/reset-password/:token", userController.resetPassword);
+userRouter.post("/send-verification-email", userController.sendVerificationEmail);
+userRouter.post("/verify-email", userController.verifyEmail);
 
 export default userRouter;

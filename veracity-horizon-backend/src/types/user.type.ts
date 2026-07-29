@@ -10,6 +10,7 @@ export const UserSchema = z.object({
   profileImage: z.string().optional(),
   fullName: z.string().optional(),
   phoneNumber: z.string().optional(),
+  isVerified: z.boolean().default(false),
 });
 
 export type UserType = z.infer<typeof UserSchema>;

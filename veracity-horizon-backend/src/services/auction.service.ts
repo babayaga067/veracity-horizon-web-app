@@ -3,32 +3,24 @@ import { IAuction } from "../models/auction.model";
 import { HttpException } from "../exceptions/http-exception";
 import { Types } from "mongoose";
 import { normalizeImageUrls } from "../utils/image.util";
+import { NotificationService } from "./notification.service";
+import { MIN_BID_INCREMENT } from "../configs/constant";
 
 const auctionRepository = new AuctionMongoRepository();
+const notificationService = new NotificationService();
 
 const PREMIUM_CATEGORIES = ["Art", "Real Estate", "Vehicles", "Collectibles"];
 const FEATURED_PRICE_THRESHOLD = 50000;
 
 export class AuctionService {
-  async getAllAuctions(page: number = 1, limit: number = 20, search?: string, status?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
-    const result = await auctionRepository.getAll(page, limit, search, status);
+  async getAllAuctions(page: number = 1, limit: number = 20, search?: string, status?: string, category?: string, minPrice?: number, maxPrice?: number, sortBy?: string, sortOrder?: string): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
+    const result = await auctionRepository.getAll(page, limit, search, status, category, minPrice, maxPrice);
     return result;
   }
 
   async getFeaturedAuctions(): Promise<IAuction[]> {
-    const result = await auctionRepository.getAll(1, 50);
-    return result.auctions
-      .filter((a) => this._isFeatured(a))
-      .sort((a, b) => (b.bids?.length || 0) - (a.bids?.length || 0))
-      .slice(0, 10);
-  }
-
-  private _isFeatured(auction: IAuction): boolean {
-    const isPremiumCategory = PREMIUM_CATEGORIES.includes(auction.category);
-    const isHighValue = (auction.startingPrice || 0) >= FEATURED_PRICE_THRESHOLD;
-    const hasMultipleBids = (auction.bids?.length || 0) >= 2;
-
-    return auction.isFeatured || (isPremiumCategory && isHighValue) || hasMultipleBids;
+    const result = await auctionRepository.getFeatured();
+    return result;
   }
 
   async getAuctionById(id: string): Promise<IAuction | null> {
@@ -41,6 +33,18 @@ export class AuctionService {
 
   async getMyBids(userId: string): Promise<IAuction[]> {
     return await auctionRepository.getBidsByUserId(userId);
+  }
+
+  async getBidHistory(auctionId: string, page: number = 1, limit: number = 20): Promise<{ bids: any[]; total: number; totalPages: number }> {
+    return await auctionRepository.getBidHistory(auctionId, page, limit);
+  }
+
+  async getSellerAnalytics(ownerId: string): Promise<{ totalAuctions: number; activeAuctions: number; totalRevenue: number; totalBidsReceived: number; wonAuctions: number; avgBidValue: number }> {
+    return await auctionRepository.getSellerAnalytics(ownerId);
+  }
+
+  async getWonAuctions(userId: string, page = 1, limit = 20): Promise<{ auctions: IAuction[]; total: number; totalPages: number }> {
+    return await auctionRepository.getWonAuctionsByUserId(userId, page, limit);
   }
 
   async createAuction(auctionData: Partial<IAuction>, ownerId: string): Promise<IAuction> {
@@ -63,7 +67,7 @@ export class AuctionService {
       description: auctionData.description || "",
       startingPrice,
       currentBid: startingPrice,
-      category: category as "Art" | "Electronics" | "Vehicles" | "Collectibles" | "Fashion" | "Real Estate" | "Textiles" | "Jewelry" | "Antiques" | "Food & Spices" | "Handicrafts" | "Musical Instruments" | "Books & Manuscripts" | "Furniture" | "Sports & Gear" | "Home & Living" | "Industrial Equipment" | "Luxury Goods" | "Agriculture & Livestock" | "Tools & Hardware" | "Ceramics & Pottery" | "Carpets & Rugs" | "Coins & Currency" | "Watches & Timepieces" | "Photography" | "Sculptures" | "Paintings" | "Textbooks & Academic" | "Outdoor & Adventure" | "Health & Wellness" | "Office Supplies" | "Children & Toys" | "Cultural Heritage" | "Religious Items" | "Digital Assets",
+      category: category as IAuction["category"],
       endsAt,
       owner: new Types.ObjectId(ownerId),
       bids: [],
@@ -76,8 +80,6 @@ export class AuctionService {
   }
 
   async placeBid(auctionId: string, userId: string, amount: number, idempotencyKey?: string) {
-    const MIN_BID_INCREMENT = 1;
-
     if (amount <= 0) {
       throw new HttpException(400, "Bid amount must be positive");
     }
@@ -87,7 +89,6 @@ export class AuctionService {
       throw new HttpException(404, "Auction not found");
     }
 
-    // Check if user is owner (owner may be a populated document or ObjectId)
     const ownerId =
       auction.owner && typeof auction.owner === "object" && "_id" in auction.owner
         ? String((auction.owner as { _id: unknown })._id)
@@ -96,35 +97,39 @@ export class AuctionService {
       throw new HttpException(403, "Cannot bid on your own auction");
     }
 
-    // Check auction status
     if (auction.status !== "active" && auction.status !== "open") {
       throw new HttpException(400, `Cannot place bid on ${auction.status} auction`);
     }
 
-    // Check auction end time
     if (auction.endsAt && new Date() > auction.endsAt) {
       throw new HttpException(400, "Auction has already ended");
     }
 
-    // Check minimum bid
     const currentHighest = auction.currentBid ?? auction.startingPrice ?? 0;
     const minRequiredBid = currentHighest + MIN_BID_INCREMENT;
     if (amount < minRequiredBid) {
       throw new HttpException(400, `Bid must be at least ${minRequiredBid} (current: ${currentHighest}, increment: ${MIN_BID_INCREMENT})`);
     }
 
-    // Check idempotency key if provided
-    if (idempotencyKey) {
+if (idempotencyKey) {
       const existingBid = auction.bids?.find(b => b.idempotencyKey === idempotencyKey);
       if (existingBid) {
         throw new HttpException(409, "Bid already placed with this key");
       }
     }
 
-    // Now perform atomic update - this prevents race conditions
     const updated = await auctionRepository.placeBidAtomic(auctionId, userId, amount, idempotencyKey);
 
     if (!updated) {
+      const latestAuction = await auctionRepository.getById(auctionId);
+      if (latestAuction && latestAuction.endsAt && new Date() > latestAuction.endsAt) {
+        throw new HttpException(400, "Auction has already ended");
+      }
+      const currentHighest = latestAuction?.currentBid ?? latestAuction?.startingPrice ?? 0;
+      const minRequiredBid = currentHighest + MIN_BID_INCREMENT;
+      if (amount < minRequiredBid) {
+        throw new HttpException(400, `Bid must be at least ${minRequiredBid} (current: ${currentHighest}, increment: ${MIN_BID_INCREMENT})`);
+      }
       throw new HttpException(409, "Bid conflict - auction state changed");
     }
 

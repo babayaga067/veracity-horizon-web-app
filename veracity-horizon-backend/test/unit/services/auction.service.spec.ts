@@ -10,6 +10,7 @@ import { HttpException } from "../../../src/exceptions/http-exception";
 vi.mock("../../../src/repositories/auction.repository", () => {
   const instance = {
     getAll: vi.fn(),
+    getFeatured: vi.fn(),
     getById: vi.fn(),
     getByOwnerId: vi.fn(),
     getBidsByUserId: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("../../../src/repositories/auction.repository", () => {
   return {
     AuctionMongoRepository: class {
       getAll = instance.getAll;
+      getFeatured = instance.getFeatured;
       getById = instance.getById;
       getByOwnerId = instance.getByOwnerId;
       getBidsByUserId = instance.getBidsByUserId;
@@ -163,19 +165,10 @@ describe("services/AuctionService", () => {
   describe("getFeaturedAuctions", () => {
     it("prioritises premium/high-value and multi-bid auctions", async () => {
       const repo = auctionRepo();
-      repo.getAll.mockResolvedValue({
-        auctions: [
-          makeAuction({ _id: "low", category: "Art", startingPrice: 10, bids: [] }),
-          makeAuction({
-            _id: "hot",
-            category: "Art",
-            startingPrice: 60000,
-            bids: [{ amount: 1 }],
-          }),
-        ],
-        total: 2,
-        totalPages: 1,
-      });
+      repo.getFeatured.mockResolvedValue([
+        makeAuction({ _id: "hot", category: "Art", startingPrice: 60000, bids: [{ amount: 1 }] }),
+        makeAuction({ _id: "low", category: "Art", startingPrice: 10, bids: [] }),
+      ]);
       const featured = await new AuctionService().getFeaturedAuctions();
       expect(featured.map((a: any) => a._id)).toContain("hot");
       expect(featured[0]._id).toBe("hot");

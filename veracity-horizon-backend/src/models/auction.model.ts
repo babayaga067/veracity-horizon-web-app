@@ -1,7 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { IUser } from "./user.model";
 
-// Auction interface
 export interface IAuction extends Document {
   title: string;
   description?: string;
@@ -19,11 +18,14 @@ export interface IAuction extends Document {
   isFeatured: boolean;
   imageUrls: string[];
   endsAt: Date;
+  notificationsSent?: {
+    ending?: boolean;
+    winnerNotified?: boolean;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Auction schema
 const AuctionSchema: Schema = new Schema<IAuction>(
   {
     title: { type: String, required: true, trim: true },
@@ -51,9 +53,18 @@ const AuctionSchema: Schema = new Schema<IAuction>(
       default: [],
     },
     endsAt: { type: Date, required: true },
+    notificationsSent: {
+      ending: { type: Boolean, default: false },
+      winnerNotified: { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );
 
-// Auction model
+AuctionSchema.index({ status: 1, endsAt: 1 });
+AuctionSchema.index({ owner: 1 });
+AuctionSchema.index({ "bids.user": 1 });
+AuctionSchema.index({ "notificationsSent.ending": 1 });
+AuctionSchema.index({ "notificationsSent.winnerNotified": 1 });
+
 export const AuctionModel = mongoose.model<IAuction>("Auction", AuctionSchema);

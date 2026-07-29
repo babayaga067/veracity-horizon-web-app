@@ -4,6 +4,8 @@ import { CreateUserDTO, LoginUserDTO, UpdateUserDTO } from "../dtos/user.dto";
 import { ApiResponseHelper } from "../utils/apihelper.util";
 import { HttpException } from "../exceptions/http-exception";
 import { Request, Response, NextFunction } from "express";
+import crypto from "crypto";
+import { cleanImageUrl } from "../utils/image.util";
 
 const userService = new UserService();
 
@@ -15,6 +17,19 @@ function handleControllerError(res: Response, error: unknown): Response {
   const status = error instanceof Error && "status" in error ? (error as { status: number }).status : 500;
   return ApiResponseHelper.error(res, message, status);
 }
+
+const ForgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Confirm password is required"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 export class UserController {
   async createUser(req: Request, res: Response) {
@@ -106,8 +121,9 @@ export class UserController {
       }
 
       if (req.file) {
-        const filename = req.file.filename;
-        parsedData.data.profileImage = `${req.protocol}://${req.get("host")}/api/v1/images/${filename}`;
+        parsedData.data.profileImage = req.file.filename;
+      } else if (parsedData.data.profileImage && typeof parsedData.data.profileImage === "string") {
+        parsedData.data.profileImage = cleanImageUrl(parsedData.data.profileImage);
       }
 
       const updatedUser = await userService.updateUser(userId, parsedData.data);
@@ -128,7 +144,7 @@ export class UserController {
       }
 
       const filename = req.file.filename;
-      const imageUrl = `${req.protocol}://${req.get("host")}/api/v1/images/${filename}`;
+      const imageUrl = `/api/v1/images/${filename}`;
 
       return ApiResponseHelper.success(res, { url: imageUrl }, "Image uploaded successfully");
     } catch (error) {
@@ -159,6 +175,80 @@ export class UserController {
       }
 
       return ApiResponseHelper.success(res, null, "Password updated successfully");
+    } catch (error) {
+      return handleControllerError(res, error);
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const parsedData = ForgotPasswordSchema.safeParse(req.body);
+      if (!parsedData.success) {
+        const formattedError = z.treeifyError(parsedData.error);
+        return ApiResponseHelper.error(res, JSON.stringify(formattedError), 400);
+      }
+
+      const { email } = parsedData.data;
+      await userService.sendResetPasswordEmail(email);
+      return ApiResponseHelper.success(res, null, "If an account with that email exists, a reset link has been sent");
+    } catch (error) {
+      if (error instanceof HttpException) {
+        if (error.status === 400) {
+          return ApiResponseHelper.error(res, "Valid email is required", 400);
+        }
+        return ApiResponseHelper.error(res, "Failed to send reset email. Please try again later.", 500);
+      }
+      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const token = (req.params as any).token as string;
+      const { newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        throw new HttpException(400, "Token and new password are required");
+      }
+
+      const updatedUser = await userService.resetPassword(token, newPassword);
+      if (!updatedUser) {
+        throw new HttpException(400, "Invalid or expired token");
+      }
+
+      return ApiResponseHelper.success(res, null, "Password has been reset successfully");
+    } catch (error) {
+      return handleControllerError(res, error);
+    }
+  }
+
+  async sendVerificationEmail(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        throw new HttpException(400, "Email is required");
+      }
+      const { token } = await userService.sendVerificationEmail(email);
+      return ApiResponseHelper.success(res, { token }, "Verification email sent successfully");
+    } catch (error) {
+      if (error instanceof HttpException) {
+        if (error.status === 400) {
+          return ApiResponseHelper.error(res, "Valid email is required", 400);
+        }
+        return ApiResponseHelper.error(res, "Failed to send verification email. Please try again later.", 500);
+      }
+      return ApiResponseHelper.error(res, "Internal Server Error", 500);
+    }
+  }
+
+  async verifyEmail(req: Request, res: Response) {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        throw new HttpException(400, "Token is required");
+      }
+      const updatedUser = await userService.verifyEmail(token);
+      return ApiResponseHelper.success(res, sanitizeUser(updatedUser), "Email verified successfully");
     } catch (error) {
       return handleControllerError(res, error);
     }

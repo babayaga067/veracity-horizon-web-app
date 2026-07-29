@@ -3,7 +3,7 @@
 import { API } from "@/app/lib/api/endpoints";
 import { getApiBase } from "@/app/lib/api/config";
 import { getTokenCookie } from "@/app/lib/api/cookies";
-import { getAuctionById, deleteAuction } from "@/app/lib/api/auctions";
+import { getAuctionById, deleteAuction, placeBid, getWonAuctions } from "@/app/lib/api/auctions";
 import type { PaginationMeta } from "@/app/lib/types/pagination";
 import type { Auction } from "@/app/lib/types/auction";
 
@@ -21,7 +21,8 @@ export type SingleAuctionResponse = {
 export const fetchAuctionsAction = async (
   page: number = 1,
   limit: number = 10,
-  search: string = ""
+  search: string = "",
+  status: string = ""
 ): Promise<{ success: boolean; data?: AuctionsResponse; message?: string }> => {
   const token = await getTokenCookie();
   if (!token) {
@@ -32,6 +33,7 @@ export const fetchAuctionsAction = async (
   params.set("page", String(page));
   params.set("limit", String(limit));
   if (search) params.set("search", search);
+  if (status) params.set("status", status);
 
   const response = await fetch(`${getApiBase()}${API.AUCTIONS.LIST}?${params.toString()}`, {
     method: "GET",
@@ -95,5 +97,46 @@ export const deleteAuctionAction = async (
       return { success: false, message: error.message };
     }
     return { success: false, message: "Failed to delete auction" };
+  }
+};
+
+export const handlePlaceBid = async (
+  auctionId: string,
+  amount: number
+): Promise<{ success: boolean; message?: string; data?: { currentBid: number } }> => {
+  try {
+    const token = await getTokenCookie();
+    if (!token) {
+      return { success: false, message: "Not authenticated" };
+    }
+    const response = await placeBid(auctionId, amount, token);
+    if (!response.success) {
+      return { success: false, message: response.message || "Failed to place bid" };
+    }
+    return { success: true, message: response.message || "Bid placed successfully", data: response.data as { currentBid: number } | undefined };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message };
+    }
+    return { success: false, message: "Failed to place bid" };
+  }
+};
+
+export const getWonAuctionsAction = async (page = 1, limit = 20) => {
+  try {
+    const token = await getTokenCookie();
+    if (!token) {
+      return { success: false, message: "Not authenticated", data: null };
+    }
+    const result = await getWonAuctions(token, page, limit);
+    if (result.success) {
+      return { success: true, message: result.message, data: result.data, meta: result.meta };
+    }
+    return { success: false, message: result.message || "Failed to fetch won auctions", data: null };
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return { success: false, message: error.message, data: null };
+    }
+    return { success: false, message: "Failed to fetch won auctions", data: null };
   }
 };

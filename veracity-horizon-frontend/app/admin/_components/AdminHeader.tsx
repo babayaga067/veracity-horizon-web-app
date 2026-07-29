@@ -21,16 +21,16 @@ export default function AdminHeader() {
   const activeKey = getActiveKey();
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="glass-dark sticky top-0 z-50 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/admin/auctions" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/30">
               A
             </div>
             <div>
-              <p className="font-bold text-gray-900 text-sm leading-tight">Admin</p>
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider">Veracity Horizon</p>
+              <p className="font-bold text-white text-sm leading-tight">Admin</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Veracity Horizon</p>
             </div>
           </Link>
 
@@ -41,10 +41,10 @@ export default function AdminHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all duration-200 ${
                     isActive
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "bg-white/10 text-white border border-white/10"
+                      : "text-slate-300 hover:text-white hover:bg-white/5"
                   }`}
                 >
                   {item.label}
@@ -57,7 +57,7 @@ export default function AdminHeader() {
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            className="text-sm font-bold text-slate-300 hover:text-white transition-colors"
           >
             Dashboard
           </Link>

@@ -43,6 +43,21 @@ export const CreateAuctionSchema = z.object({
   ]),
   endsAt: z.string().optional(),
   imageUrls: z.array(z.string()).optional(),
+  status: z.enum(["upcoming", "active", "closed", "open"]).optional(),
+  isFeatured: z.boolean().optional(),
+});
+
+export const ListAuctionsQuerySchema = z.object({
+  page: z.coerce.number().min(1).optional(),
+  limit: z.coerce.number().min(1).max(100).optional(),
+  search: z.string().optional(),
+  status: z.string().optional(),
+  category: z.string().optional(),
+  minPrice: z.coerce.number().min(0).optional(),
+  maxPrice: z.coerce.number().min(0).optional(),
+  sortBy: z.enum(["endsAt", "startingPrice", "currentBid", "createdAt"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
 export type CreateAuctionDTO = z.infer<typeof CreateAuctionSchema>;
+export type ListAuctionsQueryDTO = z.infer<typeof ListAuctionsQuerySchema>;

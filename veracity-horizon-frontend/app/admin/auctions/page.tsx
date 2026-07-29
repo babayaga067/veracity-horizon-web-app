@@ -20,18 +20,20 @@ export default async function AdminAuctionsPage({
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Auction Management</h1>
-        <p className="text-gray-500 mt-1 text-sm">Manage all auctions in the system</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Auction Management</h1>
+        <p className="text-slate-500 mt-2 text-sm font-medium">Manage all auctions in the system</p>
       </div>
 
-      <AuctionTable
-        auctions={response.data.data}
-        pagination={response.data.meta}
-        search={searchValue}
-        status={statusValue}
-      />
+      <div className="glass-card rounded-3xl border border-white/50 overflow-hidden">
+        <AuctionTable
+          auctions={response.data.data}
+          pagination={response.data.meta}
+          search={searchValue}
+          status={statusValue}
+        />
+      </div>
     </div>
   );
 }

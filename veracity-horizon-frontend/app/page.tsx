@@ -8,6 +8,7 @@ import { formatCurrency } from "@/app/lib/utils/currency";
 import { imageUrl } from "@/app/lib/api/config";
 import type { Auction } from "@/app/lib/types/auction";
 import { useAuth } from "@/app/lib/context/AuthContext";
+import AISearchBar from "@/app/(auth)/_components/AISearchBar";
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -61,9 +62,9 @@ export default function LandingPage() {
             </Link>
             
             <div className="hidden md:flex items-center gap-8">
-              <Link href="#featured" className="text-sm font-semibold text-blue-100 hover:text-white transition-colors">Featured</Link>
-              <Link href="#how-it-works" className="text-sm font-semibold text-blue-100 hover:text-white transition-colors">How It Works</Link>
-              <Link href="#stats" className="text-sm font-semibold text-blue-100 hover:text-white transition-colors">Stats</Link>
+              <Link href="#featured" className="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Featured</Link>
+              <Link href="#how-it-works" className="text-sm font-semibold text-slate-300 hover:text-white transition-colors">How It Works</Link>
+              <Link href="#stats" className="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Stats</Link>
             </div>
 
             <div className="flex items-center gap-3">
@@ -73,7 +74,7 @@ export default function LandingPage() {
                 </Link>
               ) : (
                 <>
-                  <Link href="/login" className="px-4 py-2 text-sm font-bold text-white hover:text-blue-200 transition-colors">
+                  <Link href="/login" className="px-4 py-2 text-sm font-bold text-white hover:text-indigo-200 transition-colors">
                     Sign In
                   </Link>
                   <Link href="/register" className="btn-primary px-5 py-2.5 text-sm font-bold rounded-xl">
@@ -108,7 +109,7 @@ export default function LandingPage() {
             Join the premier marketplace for high-value assets. Fast, secure, and fully transparent bidding at your fingertips.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link href={user ? "/market" : "/register"} className="btn-primary px-8 py-4 text-base font-bold rounded-2xl flex items-center gap-2">
               {user ? "Explore Market" : "Start Bidding Now"}
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -118,6 +119,11 @@ export default function LandingPage() {
             <Link href="#featured" className="px-8 py-4 text-base font-bold text-slate-700 bg-white/50 hover:bg-white/70 rounded-2xl transition-all border border-white/50">
               View Featured
             </Link>
+          </div>
+
+          {/* AI Search Bar - Hero */}
+          <div className="max-w-3xl mx-auto mb-16">
+            <AISearchBar />
           </div>
 
           {/* Quick Stats */}
@@ -334,20 +340,20 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-12 border-t border-white/10">
+      <footer className="relative py-12 border-t border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                 V
               </div>
-              <span className="font-bold text-lg tracking-tight text-white">Veracity Horizon</span>
+              <span className="font-bold text-lg tracking-tight text-slate-900">Veracity Horizon</span>
             </div>
-            <p className="text-sm text-blue-200/80">© {new Date().getFullYear()} Veracity Horizon Auctions. All rights reserved.</p>
+            <p className="text-sm text-slate-500">© {new Date().getFullYear()} Veracity Horizon Auctions. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <Link href="#" className="text-sm text-blue-200/80 hover:text-white transition-colors">Privacy</Link>
-              <Link href="#" className="text-sm text-blue-200/80 hover:text-white transition-colors">Terms</Link>
-              <Link href="#" className="text-sm text-blue-200/80 hover:text-white transition-colors">Contact</Link>
+              <Link href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Privacy</Link>
+              <Link href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Terms</Link>
+              <Link href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">Contact</Link>
             </div>
           </div>
         </div>
